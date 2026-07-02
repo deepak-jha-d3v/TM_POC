@@ -3,8 +3,14 @@ rules_engine.py
 ----------------
 Deterministic AML/transaction-monitoring rules. This is the "L1 detection"
 layer: explainable, auditable, no black box. Each rule inspects a customer's
-transaction history and returns a hit (or nothing) with a severity weight
-and the evidence behind it. Hits are rolled up into an alert per customer.
+transaction history (and, where relevant, their profile-update history) and
+returns a hit (or nothing) with a severity weight and concrete evidence.
+Hits are rolled up into an alert per customer.
+
+Rules R01-R10 are the ten rules requested for this build. R11-R12 are
+carried over from the original POC (round-tripping, multi-account
+fragmentation) and kept as bonus coverage since they were already
+implemented and working.
 
 This is intentionally simple (rule-of-thumb logic, not tuned thresholds) --
 the point of the POC is to demonstrate the pipeline end to end, not to ship
@@ -12,7 +18,6 @@ production-grade AML scenarios.
 """
 
 import json
-from collections import defaultdict
 from datetime import timedelta
 
 import pandas as pd
@@ -26,131 +31,203 @@ STRUCTURING_MIN_COUNT = 3
 
 RULE_WEIGHTS = {
     "R01_STRUCTURING": 35,
-    "R02_VELOCITY": 20,
-    "R03_HIGH_RISK_CORRIDOR": 30,
-    "R04_RAPID_MOVEMENT": 30,
-    "R05_ROUND_TRIPPING": 25,
-    "R06_DORMANT_REACTIVATION": 15,
-    "R07_CASH_INTENSIVE": 20,
-    "R08_MULTI_ACCOUNT_FRAGMENTATION": 30,
+    "R02_PROFILE_UPDATE_BEFORE_LARGE_TXN": 20,
+    "R03_UNUSUAL_SPENDING_PATTERN": 20,
+    "R04_LOW_BUYER_DIVERSITY": 25,
+    "R05_DISPROPORTIONATE_FLOW_THROUGH": 30,
+    "R06_HIGH_RISK_COUNTRIES": 30,
+    "R07_PRIVATE_WALLET_WITHDRAWAL": 30,
+    "R08_CASH_TRANSACTIONS": 20,
+    "R09_DORMANT_ACCOUNTS": 15,
+    "R10_FREQUENT_CONVERSIONS": 25,
+    "R11_ROUND_TRIPPING": 25,
+    "R12_MULTI_ACCOUNT_FRAGMENTATION": 30,
+}
+
+RULE_NAMES = {
+    "R01_STRUCTURING": "Detection of Structuring",
+    "R02_PROFILE_UPDATE_BEFORE_LARGE_TXN": "Customer Details Updated Before a Large Transaction",
+    "R03_UNUSUAL_SPENDING_PATTERN": "Unusual Spending Pattern",
+    "R04_LOW_BUYER_DIVERSITY": "Low Buyers Diversity",
+    "R05_DISPROPORTIONATE_FLOW_THROUGH": "Disproportionate Flow-Through",
+    "R06_HIGH_RISK_COUNTRIES": "High-Risk Countries",
+    "R07_PRIVATE_WALLET_WITHDRAWAL": "Immediate Withdrawal to Private Wallets",
+    "R08_CASH_TRANSACTIONS": "Cash Transactions",
+    "R09_DORMANT_ACCOUNTS": "Dormant Accounts",
+    "R10_FREQUENT_CONVERSIONS": "Frequent Conversions Crypto-FIAT or FIAT-Crypto",
+    "R11_ROUND_TRIPPING": "Round-Tripping (bonus)",
+    "R12_MULTI_ACCOUNT_FRAGMENTATION": "Multi-Account Fragmentation (bonus)",
 }
 
 
-def rule_structuring(cust_id, txns):
+def _hit(rule_id, evidence):
+    return {"rule_id": rule_id, "name": RULE_NAMES[rule_id], "weight": RULE_WEIGHTS[rule_id],
+            "evidence": evidence}
+
+
+# ---------- R01 Detection of Structuring ----------
+
+def rule_structuring(cust_id, txns, updates_df):
     deposits = txns[(txns["direction"] == "credit") &
                      (txns["amount"] >= STRUCTURING_LOW) &
                      (txns["amount"] < CTR_THRESHOLD)].sort_values("timestamp")
     if len(deposits) < STRUCTURING_MIN_COUNT:
         return None
-    times = pd.to_datetime(deposits["timestamp"])
+    times = pd.to_datetime(deposits["timestamp"], format='ISO8601')
     window_start, window_end = times.min(), times.max()
     if (window_end - window_start) <= timedelta(days=STRUCTURING_WINDOW_DAYS):
         total = deposits["amount"].sum()
-        return {
-            "rule_id": "R01_STRUCTURING",
-            "name": "Structuring (CTR avoidance)",
-            "weight": RULE_WEIGHTS["R01_STRUCTURING"],
-            "evidence": (f"{len(deposits)} deposits between ${STRUCTURING_LOW:,}-"
-                         f"${CTR_THRESHOLD:,} totaling ${total:,.0f}, within "
-                         f"{(window_end - window_start).days} days"),
-        }
+        return _hit("R01_STRUCTURING",
+                     f"{len(deposits)} deposits between ${STRUCTURING_LOW:,}-${CTR_THRESHOLD:,} "
+                     f"totaling ${total:,.0f}, within {(window_end - window_start).days} days")
     return None
 
 
-def rule_velocity(cust_id, txns, all_txns):
-    """Flag if this customer's transaction count in any 48h window is far above
-    their own overall average daily count."""
-    if len(txns) < 5:
+# ---------- R02 Customer Details Updated Before a Large Transaction ----------
+
+def rule_profile_update_before_large_txn(cust_id, txns, updates_df):
+    LARGE_TXN = 15000
+    WINDOW_HOURS = 72
+    if updates_df is None or updates_df.empty:
         return None
-    times = sorted(pd.to_datetime(txns["timestamp"]).tolist())
-    span_days = max((times[-1] - times[0]).days, 1)
-    avg_per_2day = (len(txns) / span_days) * 2
-
-    # find the busiest 48h window
-    max_count = 0
-    for t in times:
-        window_count = sum(1 for x in times if t <= x <= t + timedelta(hours=48))
-        max_count = max(max_count, window_count)
-
-    if max_count >= 10 and max_count >= avg_per_2day * 4:
-        return {
-            "rule_id": "R02_VELOCITY",
-            "name": "Velocity spike",
-            "weight": RULE_WEIGHTS["R02_VELOCITY"],
-            "evidence": (f"{max_count} transactions within a 48-hour window vs. "
-                         f"an expected ~{avg_per_2day:.1f} for this customer"),
-        }
+    cust_updates = updates_df[updates_df["customer_id"] == cust_id]
+    if cust_updates.empty:
+        return None
+    large_txns = txns[txns["amount"] >= LARGE_TXN].sort_values("timestamp")
+    if large_txns.empty:
+        return None
+    update_times = pd.to_datetime(cust_updates["update_timestamp"], format='ISO8601')
+    for _, t in large_txns.iterrows():
+        t_time = pd.to_datetime(t["timestamp"])
+        preceding = cust_updates[(update_times <= t_time) &
+                                  (update_times >= t_time - timedelta(hours=WINDOW_HOURS))]
+        if len(preceding) > 0:
+            upd = preceding.iloc[-1]
+            hours_before = (t_time - pd.to_datetime(upd["update_timestamp"])).total_seconds() / 3600
+            return _hit("R02_PROFILE_UPDATE_BEFORE_LARGE_TXN",
+                         f"'{upd['update_type'].replace('_',' ')}' changed {hours_before:.0f}h before a "
+                         f"${t['amount']:,.0f} transaction on {t['timestamp'][:10]}")
     return None
 
 
-def rule_high_risk_corridor(cust_id, txns):
+# ---------- R03 Unusual Spending Pattern ----------
+
+def rule_unusual_spending_pattern(cust_id, txns, updates_df):
+    if len(txns) < 8:
+        return None
+    amounts = txns["amount"]
+    mean, std = amounts.mean(), amounts.std()
+    if std == 0 or pd.isna(std):
+        return None
+    z = (amounts - mean) / std
+    outliers = txns[z >= 3.5]
+    if outliers.empty:
+        return None
+    worst = outliers.loc[amounts[outliers.index].idxmax()]
+    z_score = (worst["amount"] - mean) / std
+    return _hit("R03_UNUSUAL_SPENDING_PATTERN",
+                f"${worst['amount']:,.0f} transaction on {worst['timestamp'][:10]} is "
+                f"{z_score:.1f} standard deviations above this customer's own average of "
+                f"${mean:,.0f}")
+
+
+# ---------- R04 Low Buyers Diversity ----------
+
+def rule_low_buyer_diversity(cust_id, txns, updates_df):
+    MIN_SALES = 6
+    MAX_DIVERSITY_RATIO = 0.35
+    sales = txns[(txns["direction"] == "credit") & (txns.get("asset_type") == "CRYPTO") &
+                 (txns["buyer_id"].astype(str) != "")]
+    if len(sales) < MIN_SALES:
+        return None
+    unique_buyers = sales["buyer_id"].nunique()
+    ratio = unique_buyers / len(sales)
+    if ratio <= MAX_DIVERSITY_RATIO:
+        total = sales["amount"].sum()
+        return _hit("R04_LOW_BUYER_DIVERSITY",
+                     f"{len(sales)} crypto sales totaling ${total:,.0f} concentrated across only "
+                     f"{unique_buyers} distinct buyer wallet(s) ({ratio*100:.0f}% diversity ratio)")
+    return None
+
+
+# ---------- R05 Disproportionate Flow-Through ----------
+
+def rule_disproportionate_flow_through(cust_id, txns, updates_df):
+    credits = txns[(txns["direction"] == "credit") & (txns["amount"] >= 10000)].sort_values("timestamp")
+    debits = txns[(txns["direction"] == "debit")].sort_values("timestamp")
+    for _, c in credits.iterrows():
+        c_time = pd.to_datetime(c["timestamp"])
+        window = debits[(pd.to_datetime(debits["timestamp"], format='ISO8601') > c_time) &
+                         (pd.to_datetime(debits["timestamp"], format='ISO8601') <= c_time + timedelta(hours=48))]
+        if len(window) == 0:
+            continue
+        out_total = window["amount"].sum()
+        if out_total >= c["amount"] * 0.75:
+            return _hit("R05_DISPROPORTIONATE_FLOW_THROUGH",
+                         f"${c['amount']:,.0f} inbound on {c['timestamp'][:10]}, ${out_total:,.0f} "
+                         f"({out_total/c['amount']*100:.0f}%) moved back out within 48 hours")
+    return None
+
+
+# ---------- R06 High-Risk Countries ----------
+
+def rule_high_risk_countries(cust_id, txns, updates_df):
     hits = txns[txns["counterparty_country"].isin(HIGH_RISK_COUNTRIES)]
     if len(hits) == 0:
         return None
     total = hits["amount"].sum()
     countries = sorted(hits["counterparty_country"].unique().tolist())
-    return {
-        "rule_id": "R03_HIGH_RISK_CORRIDOR",
-        "name": "High-risk jurisdiction",
-        "weight": RULE_WEIGHTS["R03_HIGH_RISK_CORRIDOR"],
-        "evidence": (f"{len(hits)} transaction(s) totaling ${total:,.0f} involving "
-                     f"watch-listed jurisdiction(s): {', '.join(countries)}"),
-    }
+    crypto_hits = (hits.get("asset_type") == "CRYPTO").sum() if "asset_type" in hits else 0
+    channel_note = f", including {crypto_hits} crypto-exchange transaction(s)" if crypto_hits else ""
+    return _hit("R06_HIGH_RISK_COUNTRIES",
+                f"{len(hits)} transaction(s) totaling ${total:,.0f} involving watch-listed "
+                f"jurisdiction(s): {', '.join(countries)}{channel_note}")
 
 
-def rule_rapid_movement(cust_id, txns):
-    credits = txns[(txns["direction"] == "credit") & (txns["amount"] >= 10000)].sort_values("timestamp")
-    debits = txns[(txns["direction"] == "debit")].sort_values("timestamp")
-    for _, c in credits.iterrows():
+# ---------- R07 Immediate Withdrawal to Private Wallets ----------
+
+def rule_private_wallet_withdrawal(cust_id, txns, updates_df):
+    WINDOW_HOURS = 6
+    crypto_in = txns[(txns["direction"] == "credit") & (txns.get("asset_type") == "CRYPTO")].sort_values("timestamp")
+    private_out = txns[(txns["direction"] == "debit") & (txns.get("wallet_type") == "private_wallet")].sort_values("timestamp")
+    if crypto_in.empty or private_out.empty:
+        return None
+    private_times = pd.to_datetime(private_out["timestamp"])
+    for _, c in crypto_in.iterrows():
         c_time = pd.to_datetime(c["timestamp"])
-        window = debits[
-            (pd.to_datetime(debits["timestamp"]) > c_time) &
-            (pd.to_datetime(debits["timestamp"]) <= c_time + timedelta(hours=48))
-        ]
-        if len(window) == 0:
+        window = private_out[(private_times > c_time) & (private_times <= c_time + timedelta(hours=WINDOW_HOURS))]
+        if window.empty:
             continue
         out_total = window["amount"].sum()
-        if out_total >= c["amount"] * 0.75:
-            return {
-                "rule_id": "R04_RAPID_MOVEMENT",
-                "name": "Rapid movement of funds",
-                "weight": RULE_WEIGHTS["R04_RAPID_MOVEMENT"],
-                "evidence": (f"${c['amount']:,.0f} inbound on {c['timestamp'][:10]}, "
-                             f"${out_total:,.0f} ({out_total/c['amount']*100:.0f}%) moved "
-                             f"out within 48 hours"),
-            }
+        if out_total >= c["amount"] * 0.85:
+            hrs = (pd.to_datetime(window.iloc[0]["timestamp"]) - c_time).total_seconds() / 3600
+            return _hit("R07_PRIVATE_WALLET_WITHDRAWAL",
+                        f"${c['amount']:,.0f} of {c.get('crypto_symbol','crypto')} credited on "
+                        f"{c['timestamp'][:10]}, {out_total/c['amount']*100:.0f}% withdrawn to an "
+                        f"unhosted private wallet within {hrs:.1f}h")
     return None
 
 
-def rule_round_tripping(cust_id, txns):
-    """R05: money leaves and a similar amount comes back shortly after --
-    a classic sign of layering / circular fund flow rather than genuine spend."""
-    MIN_AMOUNT = 8000  # ignore everyday activity; only look at large transfers
-    debits = txns[(txns["direction"] == "debit") & (txns["amount"] >= MIN_AMOUNT)].sort_values("timestamp")
-    credits = txns[(txns["direction"] == "credit") & (txns["amount"] >= MIN_AMOUNT)]
-    credit_times = pd.to_datetime(credits["timestamp"])
-    for _, d in debits.iterrows():
-        d_time = pd.to_datetime(d["timestamp"])
-        window = credits[(credit_times > d_time) & (credit_times <= d_time + timedelta(days=10))]
-        matches = window[(window["amount"] - d["amount"]).abs() <= d["amount"] * 0.1]
-        if len(matches) > 0:
-            best = matches.iloc[0]
-            days = (pd.to_datetime(best["timestamp"]) - d_time).days
-            return {
-                "rule_id": "R05_ROUND_TRIPPING",
-                "name": "Round-tripping",
-                "weight": RULE_WEIGHTS["R05_ROUND_TRIPPING"],
-                "evidence": (f"${d['amount']:,.0f} sent out on {d['timestamp'][:10]}, "
-                             f"${best['amount']:,.0f} returned within {days} day(s) "
-                             f"(circular fund flow)"),
-            }
+# ---------- R08 Cash Transactions ----------
+
+def rule_cash_transactions(cust_id, txns, updates_df, expected_monthly_volume):
+    cash_txns = txns[txns["channel"] == "cash"]
+    total = txns["amount"].sum()
+    if len(cash_txns) == 0 or total == 0:
+        return None
+    cash_total = cash_txns["amount"].sum()
+    ratio = cash_total / total
+    if ratio >= 0.45 and cash_total >= expected_monthly_volume * 1.2:
+        return _hit("R08_CASH_TRANSACTIONS",
+                     f"${cash_total:,.0f} in cash transactions ({ratio*100:.0f}% of total activity), "
+                     f"vs. expected monthly volume of ${expected_monthly_volume:,.0f}")
     return None
 
 
-def rule_dormant_reactivation(cust_id, txns):
-    """R06: a long stretch of no activity followed by a sudden burst --
-    often seen when a shell/mule account is "warmed up" then used briefly."""
-    times = sorted(pd.to_datetime(txns["timestamp"]).tolist())
+# ---------- R09 Dormant Accounts ----------
+
+def rule_dormant_accounts(cust_id, txns, updates_df):
+    times = sorted(pd.to_datetime(txns["timestamp"], format='ISO8601').tolist())
     if len(times) < 5:
         return None
     gaps = [(times[i + 1] - times[i]).days for i in range(len(times) - 1)]
@@ -161,40 +238,59 @@ def rule_dormant_reactivation(cust_id, txns):
     reactivation_start = times[idx + 1]
     burst_count = sum(1 for t in times if reactivation_start <= t <= reactivation_start + timedelta(days=5))
     if burst_count >= 4:
-        return {
-            "rule_id": "R06_DORMANT_REACTIVATION",
-            "name": "Dormant account reactivation",
-            "weight": RULE_WEIGHTS["R06_DORMANT_REACTIVATION"],
-            "evidence": (f"{max_gap}-day period of inactivity followed by {burst_count} "
-                         f"transactions within 5 days of reactivation"),
-        }
+        return _hit("R09_DORMANT_ACCOUNTS",
+                     f"{max_gap}-day period of inactivity followed by {burst_count} transactions "
+                     f"within 5 days of reactivation")
     return None
 
 
-def rule_cash_intensive(cust_id, txns, expected_monthly_volume):
-    """R07: cash volume disproportionate to the customer's expected activity level --
-    a common front for placement of illicit funds."""
-    cash_txns = txns[txns["channel"] == "cash"]
-    total = txns["amount"].sum()
-    if len(cash_txns) == 0 or total == 0:
+# ---------- R10 Frequent Conversions Crypto-FIAT or FIAT-Crypto ----------
+
+def rule_frequent_conversions(cust_id, txns, updates_df):
+    WINDOW_DAYS = 30
+    MIN_COUNT = 6
+    conversions = txns[txns.get("is_conversion") == True].sort_values("timestamp")  # noqa: E712
+    if len(conversions) < MIN_COUNT:
         return None
-    cash_total = cash_txns["amount"].sum()
-    ratio = cash_total / total
-    if ratio >= 0.45 and cash_total >= expected_monthly_volume * 1.2:
-        return {
-            "rule_id": "R07_CASH_INTENSIVE",
-            "name": "Cash-intensive activity",
-            "weight": RULE_WEIGHTS["R07_CASH_INTENSIVE"],
-            "evidence": (f"${cash_total:,.0f} in cash transactions ({ratio*100:.0f}% of total "
-                         f"activity), vs. expected monthly volume of ${expected_monthly_volume:,.0f}"),
-        }
+    times = pd.to_datetime(conversions["timestamp"], format='ISO8601').tolist()
+    max_count = 0
+    window_end_idx = 0
+    for i, t in enumerate(times):
+        count = sum(1 for x in times if t <= x <= t + timedelta(days=WINDOW_DAYS))
+        if count > max_count:
+            max_count = count
+    if max_count >= MIN_COUNT:
+        total = conversions["amount"].sum()
+        symbols = sorted(conversions["crypto_symbol"].dropna().unique().tolist())
+        return _hit("R10_FREQUENT_CONVERSIONS",
+                     f"{max_count} crypto<->fiat conversions ({', '.join(symbols)}) totaling "
+                     f"${total:,.0f} within a {WINDOW_DAYS}-day window")
     return None
 
 
-def rule_multi_account_fragmentation(cust_id, txns):
-    """R08: near-CTR-threshold deposits deliberately spread across the customer's
-    multiple accounts rather than concentrated in one -- structuring designed to
-    evade single-account monitoring."""
+# ---------- R11 Round-Tripping (bonus/legacy) ----------
+
+def rule_round_tripping(cust_id, txns, updates_df):
+    MIN_AMOUNT = 8000
+    debits = txns[(txns["direction"] == "debit") & (txns["amount"] >= MIN_AMOUNT)].sort_values("timestamp")
+    credits = txns[(txns["direction"] == "credit") & (txns["amount"] >= MIN_AMOUNT)]
+    credit_times = pd.to_datetime(credits["timestamp"], format='ISO8601')
+    for _, d in debits.iterrows():
+        d_time = pd.to_datetime(d["timestamp"])
+        window = credits[(credit_times > d_time) & (credit_times <= d_time + timedelta(days=10))]
+        matches = window[(window["amount"] - d["amount"]).abs() <= d["amount"] * 0.1]
+        if len(matches) > 0:
+            best = matches.iloc[0]
+            days = (pd.to_datetime(best["timestamp"]) - d_time).days
+            return _hit("R11_ROUND_TRIPPING",
+                         f"${d['amount']:,.0f} sent out on {d['timestamp'][:10]}, ${best['amount']:,.0f} "
+                         f"returned within {days} day(s) (circular fund flow)")
+    return None
+
+
+# ---------- R12 Multi-Account Fragmentation (bonus/legacy) ----------
+
+def rule_multi_account_fragmentation(cust_id, txns, updates_df):
     near_threshold = txns[(txns["direction"] == "credit") &
                            (txns["amount"] >= STRUCTURING_LOW) &
                            (txns["amount"] < CTR_THRESHOLD)]
@@ -204,38 +300,47 @@ def rule_multi_account_fragmentation(cust_id, txns):
     accounts_with_hits = per_account[per_account >= 1]
     if len(accounts_with_hits) >= 2:
         total = near_threshold["amount"].sum()
-        return {
-            "rule_id": "R08_MULTI_ACCOUNT_FRAGMENTATION",
-            "name": "Multi-account fragmentation",
-            "weight": RULE_WEIGHTS["R08_MULTI_ACCOUNT_FRAGMENTATION"],
-            "evidence": (f"{len(near_threshold)} near-threshold deposits totaling "
-                         f"${total:,.0f}, split across {len(accounts_with_hits)} different accounts"),
-        }
+        return _hit("R12_MULTI_ACCOUNT_FRAGMENTATION",
+                     f"{len(near_threshold)} near-threshold deposits totaling ${total:,.0f}, split "
+                     f"across {len(accounts_with_hits)} different accounts")
     return None
 
 
-def run_rules(customers_df, transactions_df):
+SIMPLE_RULES = (
+    rule_structuring,
+    rule_profile_update_before_large_txn,
+    rule_unusual_spending_pattern,
+    rule_low_buyer_diversity,
+    rule_disproportionate_flow_through,
+    rule_high_risk_countries,
+    rule_private_wallet_withdrawal,
+    rule_dormant_accounts,
+    rule_frequent_conversions,
+    rule_round_tripping,
+    rule_multi_account_fragmentation,
+)
+
+
+def run_rules(customers_df, transactions_df, updates_df=None):
     """Returns a list of alert dicts, one per customer with >=1 rule hit."""
     alerts = []
     expected_volume_by_cust = customers_df.set_index("customer_id")["expected_monthly_volume"].to_dict()
 
     for cust_id, cust_txns in transactions_df.groupby("customer_id"):
         hits = []
-        for fn in (rule_structuring, rule_high_risk_corridor, rule_rapid_movement,
-                   rule_round_tripping, rule_dormant_reactivation, rule_multi_account_fragmentation):
-            hit = fn(cust_id, cust_txns)
+        for fn in SIMPLE_RULES:
+            hit = fn(cust_id, cust_txns, updates_df)
             if hit:
                 hits.append(hit)
-        vel_hit = rule_velocity(cust_id, cust_txns, transactions_df)
-        if vel_hit:
-            hits.append(vel_hit)
-        cash_hit = rule_cash_intensive(cust_id, cust_txns, expected_volume_by_cust.get(cust_id, 5000))
+        cash_hit = rule_cash_transactions(cust_id, cust_txns, updates_df,
+                                           expected_volume_by_cust.get(cust_id, 5000))
         if cash_hit:
             hits.append(cash_hit)
 
         if hits:
             base_score = min(100, sum(h["weight"] for h in hits))
             customer_row = customers_df[customers_df["customer_id"] == cust_id].iloc[0]
+            crypto_txn_count = int((cust_txns.get("asset_type") == "CRYPTO").sum())
             alerts.append({
                 "alert_id": f"ALT-{cust_id}",
                 "customer_id": cust_id,
@@ -245,6 +350,7 @@ def run_rules(customers_df, transactions_df):
                 "rules_triggered": hits,
                 "rule_based_score": base_score,
                 "transaction_count_in_window": len(cust_txns),
+                "crypto_transaction_count": crypto_txn_count,
             })
     alerts.sort(key=lambda a: a["rule_based_score"], reverse=True)
     return alerts
@@ -256,8 +362,12 @@ if __name__ == "__main__":
 
     customers_df = pd.read_csv("data/customers.csv")
     transactions_df = pd.read_csv("data/transactions.csv")
+    try:
+        updates_df = pd.read_csv("data/customer_profile_updates.csv")
+    except FileNotFoundError:
+        updates_df = pd.DataFrame(columns=["update_id", "customer_id", "update_type", "update_timestamp"])
 
-    alerts = run_rules(customers_df, transactions_df)
+    alerts = run_rules(customers_df, transactions_df, updates_df)
 
     with open("output/alerts.json", "w") as f:
         json.dump(alerts, f, indent=2)

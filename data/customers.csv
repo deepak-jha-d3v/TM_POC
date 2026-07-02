@@ -1,61 +1,91 @@
-customer_id,name,country,risk_rating,occupation,kyc_date,expected_monthly_volume
-CUST0001,James Brown,CA,medium,Teacher,2021-03-09,25000
-CUST0002,Ingrid Chen,FR,low,Import/Export Trader,2020-04-08,2000
-CUST0003,Priya Santos,FR,low,Software Engineer,2024-10-09,3500
-CUST0004,Ingrid Cohen,CA,medium,Real Estate Agent,2022-05-14,2000
-CUST0005,Olga Cohen,GB,medium,Restaurant Owner,2021-04-28,3500
-CUST0006,Tariq Khan,US,high,Import/Export Trader,2020-10-27,5000
-CUST0007,Zainab Brown,US,medium,Real Estate Agent,2024-07-24,2000
-CUST0008,Diego Chen,FR,high,Restaurant Owner,2023-01-28,15000
-CUST0009,Wei Garcia,AU,low,Teacher,2022-06-18,2000
-CUST0010,Fatima Nguyen,GB,medium,Real Estate Agent,2023-02-07,3500
-CUST0011,Sam Brown,AU,low,Retail Manager,2021-06-15,15000
-CUST0012,Olga Adeyemi,DE,medium,Restaurant Owner,2024-09-26,3500
-CUST0013,Maria Patel,US,medium,Freelance Contractor,2023-05-31,5000
-CUST0014,Kenji Silva,CA,low,Real Estate Agent,2023-05-14,25000
-CUST0015,Noah Rossi,CA,low,Nurse,2024-08-01,5000
-CUST0016,Anya Tanaka,DE,medium,Freelance Contractor,2021-11-12,3500
-CUST0017,Wei Garcia,US,low,Consultant,2021-05-12,25000
-CUST0018,Wei Nguyen,DE,low,Accountant,2023-12-25,15000
-CUST0019,Ingrid Smith,AU,low,Retail Manager,2024-07-26,5000
-CUST0020,Tariq Khan,GB,medium,Import/Export Trader,2021-05-06,8000
-CUST0021,Noah Santos,CA,low,Nurse,2020-11-26,25000
-CUST0022,Ahmed Osei,CA,low,Consultant,2023-03-07,3500
-CUST0023,Ahmed Smith,FR,low,Freelance Contractor,2024-02-27,2000
-CUST0024,Grace Novak,CA,low,Software Engineer,2022-01-18,15000
-CUST0025,Wei Muller,US,high,Nurse,2021-01-25,3500
-CUST0026,Ingrid Petrov,GB,medium,Nurse,2023-08-07,3500
-CUST0027,Sam Novak,DE,high,Freelance Contractor,2023-09-23,15000
-CUST0028,Priya Patel,US,low,Freelance Contractor,2020-03-06,15000
-CUST0029,Kenji Patel,US,low,Retail Manager,2020-07-01,3500
-CUST0030,Maria Silva,US,low,Nurse,2022-01-09,5000
-CUST0031,Sam Ivanov,CA,medium,Accountant,2024-11-25,8000
-CUST0032,Sofia Cohen,CA,low,Retail Manager,2020-10-28,25000
-CUST0033,Anya Cohen,DE,low,Software Engineer,2020-11-01,2000
-CUST0034,Tariq Khan,CA,low,Teacher,2021-08-13,15000
-CUST0035,Anya Petrov,GB,low,Real Estate Agent,2022-02-15,2000
-CUST0036,Ingrid Khan,US,low,Nurse,2020-02-15,2000
-CUST0037,Priya Petrov,DE,high,Real Estate Agent,2024-02-04,3500
-CUST0038,Maria Petrov,DE,medium,Software Engineer,2023-04-27,5000
-CUST0039,Liam Novak,DE,high,Nurse,2024-02-21,3500
-CUST0040,Sam Garcia,FR,low,Nurse,2020-07-08,25000
-CUST0041,Maria Tanaka,DE,low,Nurse,2024-07-08,3500
-CUST0042,Ahmed Chen,CA,low,Retail Manager,2020-07-30,25000
-CUST0043,Diego Khan,FR,medium,Teacher,2024-12-03,15000
-CUST0044,Wei Cohen,AU,low,Accountant,2024-10-22,15000
-CUST0045,Noah Lee,AU,low,Freelance Contractor,2022-01-11,5000
-CUST0046,Elena Adeyemi,GB,low,Retail Manager,2020-01-29,8000
-CUST0047,Kenji Khan,US,medium,Nurse,2021-10-24,15000
-CUST0048,Grace Chen,CA,low,Freelance Contractor,2022-06-04,3500
-CUST0049,Ingrid Novak,FR,low,Nurse,2020-01-25,25000
-CUST0050,Elena Khan,CA,medium,Restaurant Owner,2020-12-24,2000
-CUST0051,Carlos Brown,GB,medium,Accountant,2021-10-16,25000
-CUST0052,Noah Santos,DE,low,Restaurant Owner,2020-06-06,2000
-CUST0053,Noah Garcia,US,medium,Freelance Contractor,2021-02-10,25000
-CUST0054,Olga Adeyemi,FR,high,Import/Export Trader,2024-10-08,2000
-CUST0055,Carlos Ivanov,US,low,Freelance Contractor,2024-12-14,15000
-CUST0056,Carlos Garcia,GB,low,Freelance Contractor,2020-05-03,5000
-CUST0057,Priya Khan,GB,low,Nurse,2023-06-16,15000
-CUST0058,Priya Petrov,CA,medium,Import/Export Trader,2020-03-18,3500
-CUST0059,Tariq Cohen,AU,medium,Teacher,2022-04-08,3500
-CUST0060,Fatima Nguyen,US,medium,Real Estate Agent,2021-11-22,3500
+customer_id,name,country,risk_rating,occupation,kyc_date,expected_monthly_volume,uses_crypto
+CUST0001,Maria Andersson,FR,medium,Teacher,2021-11-24,3500,False
+CUST0002,Youssef Chen,NL,medium,Software Engineer,2020-04-02,2000,True
+CUST0003,Maria Ivanov,DE,low,E-commerce Seller,2024-08-20,8000,True
+CUST0004,James Moreau,GB,medium,E-commerce Seller,2023-08-06,5000,True
+CUST0005,Yuki Khan,CA,low,Import/Export Trader,2020-10-27,5000,False
+CUST0006,Wei Andersson,SG,medium,Nurse,2021-01-22,8000,True
+CUST0007,Nadia Abara,AU,low,Accountant,2021-08-20,25000,True
+CUST0008,Kenji Chen,DE,medium,Truck Driver,2020-11-09,8000,True
+CUST0009,Omar Petrov,AU,medium,Freelance Contractor,2021-10-12,25000,True
+CUST0010,Carlos Osei,GB,high,Nurse,2022-01-30,3500,True
+CUST0011,Mei Patel,AU,low,Truck Driver,2020-06-22,3500,False
+CUST0012,Viktor Brown,CA,medium,Teacher,2024-10-28,25000,True
+CUST0013,Viktor Abara,SG,medium,Consultant,2022-04-02,3500,True
+CUST0014,Ahmed Andersson,NL,medium,Accountant,2023-05-25,5000,True
+CUST0015,Chidi Muller,CA,high,Marketing Manager,2020-05-26,40000,True
+CUST0016,Hassan Osei,CA,medium,Import/Export Trader,2023-03-31,15000,False
+CUST0017,Mei Kowalski,US,low,Crypto Trader,2020-12-21,25000,False
+CUST0018,Yuki Khan,FR,medium,Import/Export Trader,2021-05-06,8000,True
+CUST0019,Ahmed Santos,GB,medium,Nurse,2020-11-26,40000,False
+CUST0020,Chidi Osei,DE,medium,Consultant,2023-03-07,40000,True
+CUST0021,Petra Farouk,US,high,Accountant,2022-10-04,8000,True
+CUST0022,Zainab Patel,US,high,Teacher,2024-10-28,2000,True
+CUST0023,Carlos Moreau,GB,low,Consultant,2024-01-16,15000,True
+CUST0024,Idris Cohen,DE,low,Nurse,2021-09-16,25000,True
+CUST0025,Omar Adeyemi,SG,high,Retail Manager,2022-02-09,3500,True
+CUST0026,Mei Patel,DE,low,Software Engineer,2020-08-08,25000,False
+CUST0027,Wei Kowalski,AU,low,Retail Manager,2024-05-16,3500,True
+CUST0028,Youssef Rossi,SG,low,Teacher,2024-01-09,40000,True
+CUST0029,Hassan Kim,NL,low,Import/Export Trader,2023-12-21,40000,False
+CUST0030,Sam Garcia,NL,medium,E-commerce Seller,2022-11-20,40000,False
+CUST0031,Diego Ivanov,SG,low,Consultant,2023-08-03,3500,True
+CUST0032,Carlos Adeyemi,CA,low,Software Engineer,2024-08-06,40000,True
+CUST0033,Sofia Petrov,NL,low,Real Estate Agent,2024-02-04,3500,False
+CUST0034,Tariq Nguyen,US,high,Import/Export Trader,2022-04-03,40000,False
+CUST0035,Mei Haddad,SG,low,Consultant,2021-08-12,5000,True
+CUST0036,Youssef Garcia,AU,low,Software Engineer,2020-06-04,15000,True
+CUST0037,Petra Petrov,US,high,Nurse,2020-09-05,40000,True
+CUST0038,Sofia Nguyen,CA,medium,Accountant,2022-02-03,15000,False
+CUST0039,Amara Haddad,AU,medium,Restaurant Owner,2021-09-26,25000,False
+CUST0040,Viktor Rossi,FR,low,Real Estate Agent,2022-09-09,40000,False
+CUST0041,Nadia Tanaka,CA,low,Retail Manager,2024-07-28,3500,True
+CUST0042,Isabella Abara,CA,low,Teacher,2023-02-22,5000,True
+CUST0043,Zainab Osei,US,medium,Crypto Trader,2024-09-19,5000,False
+CUST0044,Noah Brown,CA,low,Retail Manager,2024-09-14,3500,True
+CUST0045,Yuki Lee,FR,medium,Nurse,2024-02-26,5000,False
+CUST0046,Olga Okafor,NL,medium,Truck Driver,2022-05-09,2000,True
+CUST0047,Ahmed Petrov,SG,medium,Nurse,2023-08-21,15000,True
+CUST0048,Elena Ivanov,US,low,Truck Driver,2023-02-21,15000,False
+CUST0049,Wei Novak,AU,low,Marketing Manager,2020-05-03,5000,True
+CUST0050,Sam Kim,NL,low,Accountant,2021-04-25,3500,False
+CUST0051,Grace Abara,NL,high,Software Engineer,2021-07-11,25000,False
+CUST0052,Amara Sato,DE,medium,Restaurant Owner,2021-05-09,40000,False
+CUST0053,Wei Kowalski,SG,low,Teacher,2021-09-12,40000,False
+CUST0054,Liam Patel,US,low,Crypto Trader,2021-08-23,8000,True
+CUST0055,Ingrid Kim,NL,high,Crypto Trader,2024-07-23,5000,False
+CUST0056,Ahmed Petrov,FR,low,Software Engineer,2020-12-02,15000,True
+CUST0057,Marcus Cohen,CA,medium,Import/Export Trader,2024-11-26,3500,True
+CUST0058,James Santos,DE,medium,Freelance Contractor,2023-09-01,2000,False
+CUST0059,Nadia Silva,CA,high,E-commerce Seller,2022-07-22,15000,True
+CUST0060,Viktor Volkov,FR,low,Nurse,2021-01-30,3500,True
+CUST0061,Grace Osei,FR,high,Import/Export Trader,2024-08-29,40000,True
+CUST0062,Hassan Sato,AU,low,Real Estate Agent,2023-10-04,8000,False
+CUST0063,Tariq Haddad,CA,low,Restaurant Owner,2024-05-20,25000,False
+CUST0064,Sofia Haddad,FR,low,Teacher,2021-09-10,3500,True
+CUST0065,Naomi Osei,CA,low,Real Estate Agent,2023-07-11,25000,False
+CUST0066,Freya Muller,NL,medium,Teacher,2021-04-03,25000,False
+CUST0067,Sam Moreau,NL,high,Teacher,2021-06-30,40000,False
+CUST0068,Fatima Ivanov,DE,low,Truck Driver,2021-01-12,8000,True
+CUST0069,Petra Ivanov,AU,low,Marketing Manager,2023-10-07,15000,False
+CUST0070,Hassan Reyes,SG,high,Consultant,2024-01-14,8000,True
+CUST0071,Ingrid Moreau,SG,low,Crypto Trader,2022-01-13,5000,True
+CUST0072,Sofia Brown,AU,medium,Freelance Contractor,2024-08-05,2000,True
+CUST0073,Elena Volkov,DE,low,Retail Manager,2023-07-12,8000,True
+CUST0074,Fatima Lee,NL,low,Import/Export Trader,2024-12-19,25000,True
+CUST0075,Aleksander Nguyen,SG,high,Software Engineer,2022-12-28,5000,False
+CUST0076,Amara Ivanov,DE,high,Real Estate Agent,2021-11-12,5000,True
+CUST0077,Yuki Haddad,NL,low,E-commerce Seller,2021-05-27,40000,True
+CUST0078,Nadia Ivanov,US,low,Import/Export Trader,2024-10-19,25000,True
+CUST0079,Noah Kowalski,SG,medium,Consultant,2020-06-05,5000,True
+CUST0080,Marcus Silva,NL,low,Restaurant Owner,2023-08-02,5000,False
+CUST0081,Youssef Garcia,AU,low,Teacher,2020-08-01,40000,False
+CUST0082,Maria Patel,DE,low,Truck Driver,2020-03-04,15000,True
+CUST0083,Priya Tanaka,DE,low,Real Estate Agent,2022-03-07,40000,True
+CUST0084,Priya Moreau,GB,medium,Restaurant Owner,2020-12-01,15000,True
+CUST0085,Freya Nguyen,DE,low,Retail Manager,2022-01-24,2000,False
+CUST0086,Idris Sato,CA,low,Marketing Manager,2024-10-24,40000,True
+CUST0087,Omar Chen,AU,low,Software Engineer,2023-07-29,40000,True
+CUST0088,Omar Okafor,SG,low,E-commerce Seller,2021-04-20,8000,True
+CUST0089,Ingrid Osei,SG,low,Real Estate Agent,2023-09-15,40000,False
+CUST0090,Sofia Reyes,CA,low,Restaurant Owner,2023-11-01,3500,False

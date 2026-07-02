@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AML Transaction Monitoring — L1 Case Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f1524; --ink-soft:#37415a;
+    --paper:#eef1f7; --panel:#ffffff; --panel-2:#f8f9fc; --line:#e2e5ee; --line-strong:#c9cedb;
+    --muted:#6b7280;
+    --navy:#141c33; --navy2:#1f2b4d; --navy3:#2d3e6b;
+    --accent:#4f6bff; --accent-bg:#eef1ff; --accent-soft:#dde3ff;
+    --teal:#0b8f70; --teal-bg:#e2f6ef;
+    --amber:#a3620a; --amber-bg:#fdf1de;
+    --red:#c22e3d; --red-bg:#fdecee;
+    --purple:#7c3aed; --purple-bg:#f1e9ff;
+    --crypto:#c2760a; --crypto-bg:#fdf1de;
+    --mono:'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
+    --sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,21,36,.06);
+    --shadow-md: 0 4px 14px rgba(15,21,36,.08);
+    --shadow-lg: 0 12px 32px rgba(15,21,36,.14);
+    --radius: 12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+
+  header{
+    background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 55%,#26365e 100%);
+    color:#f4f6fb;padding:18px 30px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:var(--shadow-md); position:relative; z-index:5;
+  }
+  header .brand{display:flex;align-items:center;gap:12px;}
+  header .logo{
+    width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#8ea1ff);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;
+    box-shadow:0 2px 8px rgba(79,107,255,.5);
+  }
+  header h1{font-size:16px;font-weight:700;margin:0;letter-spacing:.1px;}
+  header .tag{font-size:11.5px;color:#a9b3cf;font-family:var(--mono);margin-top:2px;}
+  .stat-strip{display:flex;gap:8px;align-items:center;}
+  .stat-chip{font-size:11px;font-family:var(--mono);padding:6px 11px;border-radius:20px;background:rgba(255,255,255,.08);
+    color:#dbe2f5;border:1px solid rgba(255,255,255,.12);white-space:nowrap;}
+  .stat-chip b{color:#fff;font-weight:700;}
+  .stat-chip.high{background:rgba(194,46,61,.22);border-color:rgba(194,46,61,.35);color:#ffd9dc;}
+  .stat-chip.crypto{background:rgba(194,118,10,.22);border-color:rgba(194,118,10,.35);color:#ffe6bf;}
+  .btn-export{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:#0f1524;background:#fff;border:none;
+    padding:9px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:7px;
+    box-shadow:var(--shadow-sm);transition:.15s;
+  }
+  .btn-export:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);}
+  .btn-export svg{width:14px;height:14px;}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;height:calc(100vh - 68px);}
+  .queue{border-right:1px solid var(--line);overflow-y:auto;background:var(--panel);display:flex;flex-direction:column;}
+  .queue-controls{padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2;}
+  .search-box{position:relative;margin-bottom:10px;}
+  .search-box input{
+    width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-strong);border-radius:8px;font-size:13px;
+    font-family:var(--sans);background:var(--panel-2);
+  }
+  .search-box input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  .search-box::before{content:'⌕';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+  .filter-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .filter-btn{
+    font-size:11px;font-family:var(--mono);padding:5px 10px;border-radius:16px;border:1px solid var(--line-strong);
+    background:#fff;cursor:pointer;color:var(--ink-soft);transition:.12s;
+  }
+  .filter-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .rule-chip-filters{display:flex;gap:5px;flex-wrap:wrap;max-height:96px;overflow-y:auto;padding-right:2px;}
+  .rule-chip-filters::-webkit-scrollbar{width:5px;}
+  .rule-chip-filters::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px;}
+  .rule-chip{
+    font-size:10px;font-family:var(--mono);padding:4px 8px;border-radius:5px;border:1px solid var(--line-strong);
+    background:#fff;cursor:pointer;color:var(--muted);transition:.12s;
+  }
+  .rule-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .queue-head{padding:10px 16px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;}
+  .qlist{flex:1;overflow-y:auto;}
+  .qitem{padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s;position:relative;}
+  .qitem:hover{background:var(--panel-2);}
+  .qitem.active{background:var(--accent-bg);}
+  .qitem.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+  .qitem.decided{opacity:.48;}
+  .qitem-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .qitem-id{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .qitem-name{font-size:14px;font-weight:700;margin-top:3px;color:var(--ink);}
+  .qitem-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+  .mini-badge{font-size:9.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .mini-badge.crypto{background:var(--crypto-bg);color:var(--crypto);border-color:#f1d6a3;}
+  .qitem-rules{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .score-pill{font-family:var(--mono);font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:20px;}
+  .lvl-High{background:var(--red-bg);color:var(--red);}
+  .lvl-Medium-High{background:var(--amber-bg);color:var(--amber);}
+  .lvl-Medium{background:var(--amber-bg);color:var(--amber);}
+  .lvl-Low{background:var(--teal-bg);color:var(--teal);}
+
+  main{overflow-y:auto;padding:26px 34px 60px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;font-weight:700;}
+  .cust-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
+  .cust-name{font-size:21px;font-weight:800;letter-spacing:-.2px;}
+  .cust-meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:5px;}
+  .cust-flags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .risk-chip{font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:6px;border:1px solid var(--line);text-transform:uppercase;font-weight:700;}
+  .risk-low{color:var(--teal);border-color:#bfe6d7;background:var(--teal-bg);}
+  .risk-medium{color:var(--amber);border-color:#f1d9ac;background:var(--amber-bg);}
+  .risk-high{color:var(--red);border-color:#f0c1c7;background:var(--red-bg);}
+  .crypto-chip{font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:6px;border:1px solid #f1d6a3;background:var(--crypto-bg);color:var(--crypto);font-weight:700;}
+
+  .ai-panel{border:1px solid #bfe0d3;background:linear-gradient(165deg,#f2fbf8 0%,#ffffff 55%);}
+  .ai-head{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .ai-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px var(--teal-bg);}
+  .ai-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);font-weight:800;}
+  .score-row{display:flex;align-items:center;gap:26px;margin-bottom:18px;flex-wrap:wrap;}
+  .score-num{font-family:var(--mono);font-size:44px;font-weight:800;line-height:1;color:var(--ink);}
+  .score-sub{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600;}
+  .meter{flex:1;min-width:180px;height:9px;background:#e3ede9;border-radius:5px;overflow:hidden;position:relative;}
+  .meter-fill{height:100%;background:linear-gradient(90deg,#0b8f70,#14b891);border-radius:5px;transition:width .4s;}
+  .meter-base{position:absolute;top:-3px;width:2px;height:15px;background:var(--ink);opacity:.35;}
+  .adj-note{font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.55;}
+  .summary-text{font-size:14.5px;line-height:1.65;margin:16px 0 4px;color:var(--ink);}
+  .action-suggest{
+    display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:12px;padding:8px 14px;border-radius:7px;
+    background:var(--navy);color:#fff;font-family:var(--mono);font-weight:600;
+  }
+
+  /* Accordion */
+  .accordion{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+  .acc-item{border:1px solid var(--line);border-radius:10px;background:#fbfbfd;overflow:hidden;transition:box-shadow .15s;}
+  .acc-item.open{box-shadow:var(--shadow-sm);border-color:var(--line-strong);}
+  .acc-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;gap:10px;}
+  .acc-header:hover{background:#f4f5f9;}
+  .acc-header-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .acc-chevron{font-size:11px;color:var(--muted);transition:transform .2s;flex-shrink:0;}
+  .acc-item.open .acc-chevron{transform:rotate(90deg);}
+  .acc-rule-id{font-family:var(--mono);font-size:10.5px;color:var(--navy3);font-weight:700;background:var(--accent-bg);padding:2px 7px;border-radius:4px;flex-shrink:0;}
+  .acc-rule-name{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .acc-weight{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex-shrink:0;}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  .acc-item.open .acc-body{max-height:900px;}
+  .acc-body-inner{padding:0 16px 16px;border-top:1px solid var(--line);padding-top:12px;}
+  .acc-plain{font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px;}
+  .acc-evidence{font-family:var(--mono);font-size:12px;color:var(--ink-soft);background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;padding:9px 11px;line-height:1.55;}
+
+  .txn-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px;}
+  .txn-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+    padding:6px 8px;border-bottom:2px solid var(--line);font-weight:700;}
+  .txn-table td{padding:7px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);color:var(--ink-soft);}
+  .txn-table tr:hover td{background:var(--panel-2);}
+  .dir-credit{color:var(--teal);font-weight:700;}
+  .dir-debit{color:var(--red);font-weight:700;}
+  .asset-crypto{color:var(--crypto);font-weight:700;}
+  .wallet-private{background:var(--purple-bg);color:var(--purple);padding:1px 6px;border-radius:4px;font-size:10.5px;}
+
+  .decision-row{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;}
+  .btn{flex:1;min-width:150px;padding:12px 10px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;cursor:pointer;
+    font-size:13px;font-weight:700;transition:.12s;font-family:var(--sans);}
+  .btn:hover{border-color:var(--navy3);transform:translateY(-1px);}
+  .btn.close{color:var(--teal);}
+  .btn.escalate{color:var(--red);}
+  .btn.info{color:var(--amber);}
+  .btn.active-choice{color:#fff;border-color:transparent;}
+  .btn.close.active-choice{background:var(--teal);}
+  .btn.escalate.active-choice{background:var(--red);}
+  .btn.info.active-choice{background:var(--amber);}
+  textarea{width:100%;margin-top:12px;border:1px solid var(--line-strong);border-radius:8px;padding:10px 12px;
+    font-family:var(--sans);font-size:13px;resize:vertical;min-height:56px;background:var(--panel-2);}
+  textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);background:#fff;}
+  .log-empty{font-size:13px;color:var(--muted);}
+  .log-entry{font-size:12px;font-family:var(--mono);padding:9px 0;border-bottom:1px solid var(--line);color:var(--muted);}
+  .log-entry b{color:var(--ink);}
+  .empty-state{display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-size:14px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">TM</div>
+    <div>
+      <h1>AML Transaction Monitoring — L1 Case Review</h1>
+      <div class="tag">POC · synthetic data incl. crypto &amp; private wallets · human-in-the-loop</div>
+    </div>
+  </div>
+  <div class="stat-strip" id="statStrip"></div>
+  <button class="btn-export" onclick="exportAuditCsv()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
+    Export audit log (CSV)
+  </button>
+</header>
+
+<div class="layout">
+  <div class="queue">
+    <div class="queue-controls">
+      <div class="search-box"><input id="searchBox" placeholder="Search customer or ID…" oninput="renderQueue()"></div>
+      <div class="filter-row" id="riskFilterRow"></div>
+      <div class="filter-row">
+        <button class="filter-btn" id="cryptoFilterBtn" onclick="toggleCryptoFilter()">🪙 Crypto-involved only</button>
+      </div>
+      <div class="rule-chip-filters" id="ruleChipFilters"></div>
+    </div>
+    <div class="queue-head" id="queueHeadLabel">Alert queue</div>
+    <div class="qlist" id="queueList"></div>
+  </div>
+  <main id="mainPanel"></main>
+</div>
+
+<script>
+const ALERTS = __ALERTS_JSON__;
+const RULE_CATALOG = __RULE_CATALOG_JSON__;
+
+const decisions = {}; // alert_id -> {action, note, override, timestamp}
+let selectedId = ALERTS.length ? ALERTS[0].alert_id : null;
+let searchTerm = '';
+let riskFilter = 'all';
+let cryptoOnly = false;
+let activeRuleFilters = new Set();
+let openAccordions = new Set(); // rule_ids open for current alert
+
+function slug(label){ return label.replace(/\s+/g,'-'); }
+function fmtMoney(n){ return '$' + Number(n).toLocaleString(undefined,{maximumFractionDigits:0}); }
+
+function isCryptoAlert(a){
+  return (a.crypto_transaction_count && a.crypto_transaction_count > 0) ||
+         a.rules_triggered.some(r => ['R04_LOW_BUYER_DIVERSITY','R07_PRIVATE_WALLET_WITHDRAWAL','R10_FREQUENT_CONVERSIONS'].includes(r.rule_id));
+}
+
+function renderStatStrip(){
+  const total = ALERTS.length;
+  const high = ALERTS.filter(a=>a.ai_copilot.confidence_label==='High').length;
+  const crypto = ALERTS.filter(isCryptoAlert).length;
+  const rulesFired = new Set();
+  ALERTS.forEach(a=>a.rules_triggered.forEach(r=>rulesFired.add(r.rule_id)));
+  document.getElementById('statStrip').innerHTML = `
+    <span class="stat-chip"><b>${total}</b> alerts</span>
+    <span class="stat-chip high"><b>${high}</b> high</span>
+    <span class="stat-chip crypto"><b>${crypto}</b> crypto-involved</span>
+    <span class="stat-chip"><b>${rulesFired.size}</b>/${RULE_CATALOG.length} rules firing</span>
+  `;
+}
+
+function renderFilterControls(){
+  const risks = ['all','low','medium','high'];
+  document.getElementById('riskFilterRow').innerHTML = risks.map(r=>
+    `<button class="filter-btn ${riskFilter===r?'active':''}" onclick="setRiskFilter('${r}')">${r==='all'?'All risk':r}</button>`
+  ).join('');
+
+  document.getElementById('ruleChipFilters').innerHTML = RULE_CATALOG.map(r=>
+    `<button class="rule-chip ${activeRuleFilters.has(r.rule_id)?'active':''}" onclick="toggleRuleFilter('${r.rule_id}')" title="${r.name}">${r.rule_id.split('_')[0]}</button>`
+  ).join('');
+}
+
+function setRiskFilter(r){ riskFilter = r; renderFilterControls(); renderQueue(); }
+function toggleCryptoFilter(){
+  cryptoOnly = !cryptoOnly;
+  document.getElementById('cryptoFilterBtn').classList.toggle('active', cryptoOnly);
+  renderQueue();
+}
+function toggleRuleFilter(ruleId){
+  if(activeRuleFilters.has(ruleId)) activeRuleFilters.delete(ruleId); else activeRuleFilters.add(ruleId);
+  renderFilterControls(); renderQueue();
+}
+
+function filteredAlerts(){
+  const term = document.getElementById('searchBox') ? document.getElementById('searchBox').value.trim().toLowerCase() : '';
+  return ALERTS.filter(a=>{
+    if(term && !(a.customer_name.toLowerCase().includes(term) || a.customer_id.toLowerCase().includes(term) || a.alert_id.toLowerCase().includes(term))) return false;
+    if(riskFilter!=='all' && a.customer_risk_rating!==riskFilter) return false;
+    if(cryptoOnly && !isCryptoAlert(a)) return false;
+    if(activeRuleFilters.size>0 && !a.rules_triggered.some(r=>activeRuleFilters.has(r.rule_id))) return false;
+    return true;
+  });
+}
+
+function renderQueue(){
+  const list = document.getElementById('queueList');
+  const filtered = [...filteredAlerts()].sort((a,b)=>b.ai_copilot.confidence_score - a.ai_copilot.confidence_score);
+  document.getElementById('queueHeadLabel').textContent = `${filtered.length} of ${ALERTS.length} alerts · sorted by AI confidence`;
+
+  if(filtered.length===0){
+    list.innerHTML = `<div style="padding:24px 16px;color:var(--muted);font-size:13px;">No alerts match the current filters.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(a=>{
+    const ai = a.ai_copilot;
+    const decided = decisions[a.alert_id];
+    const ruleTags = a.rules_triggered.map(r=>r.rule_id.split('_')[0]).join(' · ');
+    const crypto = isCryptoAlert(a);
+    return `<div class="qitem ${a.alert_id===selectedId?'active':''} ${decided?'decided':''}" onclick="selectAlert('${a.alert_id}')">
+      <div class="qitem-top">
+        <span class="qitem-id">${a.alert_id}</span>
+        <span class="score-pill lvl-${slug(ai.confidence_label)}">${ai.confidence_score}</span>
+      </div>
+      <div class="qitem-name">${a.customer_name}</div>
+      <div class="qitem-badges">
+        <span class="mini-badge">${a.customer_risk_rating} risk</span>
+        <span class="mini-badge">${a.customer_country}</span>
+        ${crypto ? `<span class="mini-badge crypto">🪙 crypto</span>` : ''}
+        ${decided ? `<span class="mini-badge">${decided.action.replace(/_/g,' ')}</span>` : ''}
+      </div>
+      <div class="qitem-rules">${ruleTags}</div>
+    </div>`;
+  }).join('');
+
+  if(!filtered.find(a=>a.alert_id===selectedId) && filtered.length>0){
+    selectedId = filtered[0].alert_id;
+  }
+}
+
+function selectAlert(id){
+  selectedId = id;
+  openAccordions = new Set();
+  renderQueue();
+  renderMain();
+}
+
+function toggleAccordion(ruleId){
+  if(openAccordions.has(ruleId)) openAccordions.delete(ruleId); else openAccordions.add(ruleId);
+  renderMain(true);
+}
+
+function txnRow(t){
+  const dirClass = t.direction==='credit' ? 'dir-credit' : 'dir-debit';
+  const assetClass = t.asset_type==='CRYPTO' ? 'asset-crypto' : '';
+  const walletBadge = t.wallet_type==='private_wallet' ? `<span class="wallet-private">private wallet</span>` :
+                       (t.wallet_type==='exchange_wallet' ? 'exchange' : '—');
+  const amountLabel = t.asset_type==='CRYPTO' ? `${t.currency} ${fmtMoney(t.amount)}` : fmtMoney(t.amount);
+  return `<tr>
+    <td>${t.timestamp}</td>
+    <td class="${dirClass}">${t.direction}</td>
+    <td class="${assetClass}">${amountLabel}</td>
+    <td>${t.channel}</td>
+    <td>${walletBadge}</td>
+    <td>${t.counterparty} (${t.counterparty_country})</td>
+  </tr>`;
+}
+
+function renderMain(preserveScroll){
+  const scrollY = preserveScroll ? document.getElementById('mainPanel').scrollTop : 0;
+  const a = ALERTS.find(x=>x.alert_id===selectedId);
+  const main = document.getElementById('mainPanel');
+  if(!a){ main.innerHTML = `<div class="empty-state">Select an alert from the queue.</div>`; return; }
+  const ai = a.ai_copilot;
+  const decided = decisions[a.alert_id];
+
+  const explainMap = {};
+  (ai.rules_explained||[]).forEach(r=>explainMap[r.rule_id]=r.plain_language);
+
+  const accordionHtml = a.rules_triggered.map(r=>{
+    const open = openAccordions.has(r.rule_id);
+    return `<div class="acc-item ${open?'open':''}">
+      <div class="acc-header" onclick="toggleAccordion('${r.rule_id}')">
+        <div class="acc-header-left">
+          <span class="acc-chevron">▶</span>
+          <span class="acc-rule-id">${r.rule_id.split('_')[0]}</span>
+          <span class="acc-rule-name">${r.name}</span>
+        </div>
+        <span class="acc-weight">weight ${r.weight}</span>
+      </div>
+      <div class="acc-body">
+        <div class="acc-body-inner">
+          <div class="acc-plain">${explainMap[r.rule_id] || ''}</div>
+          <div class="acc-evidence">${r.evidence}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const actionLabelMap = {close_false_positive:'Suggested: close as false positive', escalate_to_l2:'Suggested: escalate to L2 / SAR review', request_more_info:'Suggested: request more information'};
+
+  const txnRowsHtml = (a.sample_transactions||[]).map(txnRow).join('');
+  const cryptoBadge = isCryptoAlert(a) ? `<span class="crypto-chip">🪙 ${a.crypto_transaction_count||0} crypto txns</span>` : '';
+
+  main.innerHTML = `
+    <div class="panel">
+      <div class="cust-row">
+        <div>
+          <div class="cust-name">${a.customer_name}</div>
+          <div class="cust-meta">${a.customer_id} · ${a.customer_country} · ${a.alert_id} · ${a.transaction_count_in_window} txns in window</div>
+          <div class="cust-flags">
+            <span class="risk-chip risk-${a.customer_risk_rating}">${a.customer_risk_rating} risk</span>
+            ${cryptoBadge}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel ai-panel">
+      <div class="ai-head"><span class="ai-dot"></span><span class="ai-label">AI copilot assessment</span></div>
+      <div class="score-row">
+        <div>
+          <div class="score-num">${ai.confidence_score}</div>
+          <div class="score-sub">${ai.confidence_label} confidence</div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div class="meter"><div class="meter-fill" style="width:${ai.confidence_score}%"></div>
+            <div class="meter-base" style="left:${ai.base_score}%"></div>
+          </div>
+          <div class="adj-note">Rule-based base score: <b>${ai.base_score}</b> → AI-adjusted: <b>${ai.confidence_score}</b></div>
+        </div>
+      </div>
+      <div class="summary-text">${ai.summary}</div>
+      <div class="adj-note" style="font-style:italic">${ai.adjustment_reason}</div>
+      <h2 style="margin-top:20px">Rules triggered — click to expand justification</h2>
+      <div class="accordion">${accordionHtml}</div>
+      <div class="action-suggest">${actionLabelMap[ai.suggested_action]}</div>
+    </div>
+
+    ${txnRowsHtml ? `
+    <div class="panel">
+      <h2>Representative supporting transactions</h2>
+      <table class="txn-table">
+        <thead><tr><th>Timestamp</th><th>Direction</th><th>Amount</th><th>Channel</th><th>Wallet</th><th>Counterparty</th></tr></thead>
+        <tbody>${txnRowsHtml}</tbody>
+      </table>
+    </div>` : ''}
+
+    <div class="panel">
+      <h2>Analyst disposition (human-in-the-loop)</h2>
+      <div class="decision-row">
+        <button class="btn close ${decided?.action==='close_false_positive'?'active-choice':''}" onclick="decide('close_false_positive')">Close — false positive</button>
+        <button class="btn info ${decided?.action==='request_more_info'?'active-choice':''}" onclick="decide('request_more_info')">Request more info</button>
+        <button class="btn escalate ${decided?.action==='escalate_to_l2'?'active-choice':''}" onclick="decide('escalate_to_l2')">Escalate to L2 / SAR review</button>
+      </div>
+      <textarea id="noteBox" placeholder="Optional note — required if overriding the AI's suggested action">${decided?.note||''}</textarea>
+    </div>
+
+    <div class="panel">
+      <h2>Audit log for this alert</h2>
+      <div id="logArea">${decided ? `<div class="log-entry"><b>${decided.action.replace(/_/g,' ')}</b> by L1 Analyst (demo) at ${decided.timestamp}${decided.note? ' — "'+decided.note+'"':''}${decided.override? ' <span style="color:var(--amber)">[override of AI suggestion]</span>':''}</div>` : '<div class="log-empty">No decision recorded yet for this alert.</div>'}</div>
+    </div>
+  `;
+  main.scrollTop = scrollY;
+}
+
+function decide(action){
+  const a = ALERTS.find(x=>x.alert_id===selectedId);
+  const note = document.getElementById('noteBox').value.trim();
+  const override = action !== a.ai_copilot.suggested_action;
+  decisions[a.alert_id] = { action, note, override, timestamp: new Date().toISOString().slice(0,19).replace('T',' ') };
+  renderQueue();
+  renderMain();
+}
+
+function csvEscape(v){
+  if(v===undefined || v===null) return '';
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+function exportAuditCsv(){
+  const headers = ['alert_id','customer_id','customer_name','customer_risk_rating','customer_country',
+                    'rules_triggered','ai_base_score','ai_confidence_score','ai_confidence_label',
+                    'ai_suggested_action','analyst_decision','analyst_note','override_of_ai','decision_timestamp'];
+  const rows = [headers.join(',')];
+  ALERTS.forEach(a=>{
+    const ai = a.ai_copilot;
+    const decided = decisions[a.alert_id];
+    const ruleList = a.rules_triggered.map(r=>r.rule_id).join('; ');
+    rows.push([
+      a.alert_id, a.customer_id, a.customer_name, a.customer_risk_rating, a.customer_country,
+      ruleList, ai.base_score, ai.confidence_score, ai.confidence_label, ai.suggested_action,
+      decided ? decided.action : 'pending',
+      decided ? decided.note : '',
+      decided ? decided.override : '',
+      decided ? decided.timestamp : ''
+    ].map(csvEscape).join(','));
+  });
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `aml_audit_log_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+renderStatStrip();
+renderFilterControls();
+renderQueue();
+renderMain();
+</script>
+</body>
+</html>

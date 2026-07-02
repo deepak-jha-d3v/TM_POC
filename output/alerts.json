@@ -1,144 +1,896 @@
 [
   {
-    "alert_id": "ALT-CUST0027",
-    "customer_id": "CUST0027",
-    "customer_name": "Wei Silva",
-    "customer_risk_rating": "medium",
+    "alert_id": "ALT-CUST0075",
+    "customer_id": "CUST0075",
+    "customer_name": "Aleksander Nguyen",
+    "customer_risk_rating": "high",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Detection of Structuring",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,490, within 2 days"
+      },
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$9,797 transaction on 2026-05-23 is 4.2 standard deviations above this customer's own average of $1,182"
+      },
+      {
+        "rule_id": "R12_MULTI_ACCOUNT_FRAGMENTATION",
+        "name": "Multi-Account Fragmentation (bonus)",
+        "weight": 30,
+        "evidence": "4 near-threshold deposits totaling $37,490, split across 2 different accounts"
+      }
+    ],
+    "rule_based_score": 85,
+    "transaction_count_in_window": 69,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0068",
+    "customer_id": "CUST0068",
+    "customer_name": "Fatima Ivanov",
+    "customer_risk_rating": "low",
     "customer_country": "DE",
     "rules_triggered": [
       {
-        "rule_id": "R03_HIGH_RISK_CORRIDOR",
-        "name": "High-risk jurisdiction",
-        "weight": 30,
-        "evidence": "1 transaction(s) totaling $32,437 involving watch-listed jurisdiction(s): SY"
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$22,064 transaction on 2026-06-11 is 3.9 standard deviations above this customer's own average of $2,545"
       },
       {
-        "rule_id": "R04_RAPID_MOVEMENT",
-        "name": "Rapid movement of funds",
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
         "weight": 30,
-        "evidence": "$33,840 inbound on 2026-06-04, $32,704 (97%) moved out within 48 hours"
+        "evidence": "$22,064 inbound on 2026-06-11, $21,757 (99%) moved back out within 48 hours"
+      },
+      {
+        "rule_id": "R07_PRIVATE_WALLET_WITHDRAWAL",
+        "name": "Immediate Withdrawal to Private Wallets",
+        "weight": 30,
+        "evidence": "$22,064 of SOL credited on 2026-06-11, 91% withdrawn to an unhosted private wallet within 1.2h"
       }
     ],
-    "rule_based_score": 60,
-    "transaction_count_in_window": 64
+    "rule_based_score": 80,
+    "transaction_count_in_window": 31,
+    "crypto_transaction_count": 9
   },
   {
-    "alert_id": "ALT-CUST0007",
-    "customer_id": "CUST0007",
-    "customer_name": "Anya Petrov",
+    "alert_id": "ALT-CUST0074",
+    "customer_id": "CUST0074",
+    "customer_name": "Fatima Lee",
     "customer_risk_rating": "low",
+    "customer_country": "NL",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Detection of Structuring",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,181, within 2 days"
+      },
+      {
+        "rule_id": "R12_MULTI_ACCOUNT_FRAGMENTATION",
+        "name": "Multi-Account Fragmentation (bonus)",
+        "weight": 30,
+        "evidence": "4 near-threshold deposits totaling $37,181, split across 2 different accounts"
+      }
+    ],
+    "rule_based_score": 65,
+    "transaction_count_in_window": 54,
+    "crypto_transaction_count": 16
+  },
+  {
+    "alert_id": "ALT-CUST0045",
+    "customer_id": "CUST0045",
+    "customer_name": "Yuki Lee",
+    "customer_risk_rating": "medium",
     "customer_country": "FR",
     "rules_triggered": [
       {
-        "rule_id": "R01_STRUCTURING",
-        "name": "Structuring (CTR avoidance)",
-        "weight": 35,
-        "evidence": "4 deposits between $9,000-$10,000 totaling $37,380, within 2 days"
-      }
-    ],
-    "rule_based_score": 35,
-    "transaction_count_in_window": 23
-  },
-  {
-    "alert_id": "ALT-CUST0012",
-    "customer_id": "CUST0012",
-    "customer_name": "Carlos Kim",
-    "customer_risk_rating": "low",
-    "customer_country": "AU",
-    "rules_triggered": [
-      {
-        "rule_id": "R01_STRUCTURING",
-        "name": "Structuring (CTR avoidance)",
-        "weight": 35,
-        "evidence": "4 deposits between $9,000-$10,000 totaling $37,330, within 2 days"
-      }
-    ],
-    "rule_based_score": 35,
-    "transaction_count_in_window": 23
-  },
-  {
-    "alert_id": "ALT-CUST0023",
-    "customer_id": "CUST0023",
-    "customer_name": "Maria Cohen",
-    "customer_risk_rating": "low",
-    "customer_country": "AU",
-    "rules_triggered": [
-      {
-        "rule_id": "R01_STRUCTURING",
-        "name": "Structuring (CTR avoidance)",
-        "weight": 35,
-        "evidence": "4 deposits between $9,000-$10,000 totaling $38,092, within 2 days"
-      }
-    ],
-    "rule_based_score": 35,
-    "transaction_count_in_window": 34
-  },
-  {
-    "alert_id": "ALT-CUST0011",
-    "customer_id": "CUST0011",
-    "customer_name": "Tariq Cohen",
-    "customer_risk_rating": "low",
-    "customer_country": "GB",
-    "rules_triggered": [
-      {
-        "rule_id": "R04_RAPID_MOVEMENT",
-        "name": "Rapid movement of funds",
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
         "weight": 30,
-        "evidence": "$36,415 inbound on 2026-04-20, $34,767 (95%) moved out within 48 hours"
+        "evidence": "$13,693 inbound on 2026-04-28, $13,618 (99%) moved back out within 48 hours"
+      },
+      {
+        "rule_id": "R07_PRIVATE_WALLET_WITHDRAWAL",
+        "name": "Immediate Withdrawal to Private Wallets",
+        "weight": 30,
+        "evidence": "$13,693 of SOL credited on 2026-04-28, 99% withdrawn to an unhosted private wallet within 2.7h"
       }
     ],
-    "rule_based_score": 30,
-    "transaction_count_in_window": 28
+    "rule_based_score": 60,
+    "transaction_count_in_window": 22,
+    "crypto_transaction_count": 2
   },
   {
-    "alert_id": "ALT-CUST0016",
-    "customer_id": "CUST0016",
-    "customer_name": "Tariq Patel",
+    "alert_id": "ALT-CUST0065",
+    "customer_id": "CUST0065",
+    "customer_name": "Naomi Osei",
     "customer_risk_rating": "low",
     "customer_country": "CA",
     "rules_triggered": [
       {
-        "rule_id": "R03_HIGH_RISK_CORRIDOR",
-        "name": "High-risk jurisdiction",
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
         "weight": 30,
-        "evidence": "2 transaction(s) totaling $60,441 involving watch-listed jurisdiction(s): MM"
+        "evidence": "$15,298 inbound on 2026-06-21, $20,989 (137%) moved back out within 48 hours"
+      },
+      {
+        "rule_id": "R07_PRIVATE_WALLET_WITHDRAWAL",
+        "name": "Immediate Withdrawal to Private Wallets",
+        "weight": 30,
+        "evidence": "$15,298 of BTC credited on 2026-06-21, 100% withdrawn to an unhosted private wallet within 1.3h"
       }
     ],
-    "rule_based_score": 30,
-    "transaction_count_in_window": 34
+    "rule_based_score": 60,
+    "transaction_count_in_window": 21,
+    "crypto_transaction_count": 2
   },
   {
-    "alert_id": "ALT-CUST0036",
-    "customer_id": "CUST0036",
-    "customer_name": "Tariq Garcia",
+    "alert_id": "ALT-CUST0019",
+    "customer_id": "CUST0019",
+    "customer_name": "Ahmed Santos",
     "customer_risk_rating": "medium",
-    "customer_country": "US",
+    "customer_country": "GB",
     "rules_triggered": [
       {
-        "rule_id": "R03_HIGH_RISK_CORRIDOR",
-        "name": "High-risk jurisdiction",
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,789 sent out on 2026-05-21, $9,030 returned within 9 day(s) (circular fund flow)"
+      },
+      {
+        "rule_id": "R12_MULTI_ACCOUNT_FRAGMENTATION",
+        "name": "Multi-Account Fragmentation (bonus)",
         "weight": 30,
-        "evidence": "2 transaction(s) totaling $57,606 involving watch-listed jurisdiction(s): MM, SY"
+        "evidence": "3 near-threshold deposits totaling $27,601, split across 2 different accounts"
       }
     ],
-    "rule_based_score": 30,
-    "transaction_count_in_window": 69
+    "rule_based_score": 55,
+    "transaction_count_in_window": 38,
+    "crypto_transaction_count": 0
   },
   {
-    "alert_id": "ALT-CUST0010",
-    "customer_id": "CUST0010",
-    "customer_name": "Diego Rossi",
-    "customer_risk_rating": "medium",
-    "customer_country": "US",
+    "alert_id": "ALT-CUST0003",
+    "customer_id": "CUST0003",
+    "customer_name": "Maria Ivanov",
+    "customer_risk_rating": "low",
+    "customer_country": "DE",
     "rules_triggered": [
       {
-        "rule_id": "R02_VELOCITY",
-        "name": "Velocity spike",
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
         "weight": 20,
-        "evidence": "16 transactions within a 48-hour window vs. an expected ~1.7 for this customer"
+        "evidence": "$51,756 transaction on 2026-06-02 is 6.4 standard deviations above this customer's own average of $2,408"
+      },
+      {
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
+        "weight": 30,
+        "evidence": "$51,756 inbound on 2026-06-02, $47,524 (92%) moved back out within 48 hours"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 75,
+    "crypto_transaction_count": 12
+  },
+  {
+    "alert_id": "ALT-CUST0012",
+    "customer_id": "CUST0012",
+    "customer_name": "Viktor Brown",
+    "customer_risk_rating": "medium",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$35,149 transaction on 2026-05-08 is 4.8 standard deviations above this customer's own average of $4,740"
+      },
+      {
+        "rule_id": "R06_HIGH_RISK_COUNTRIES",
+        "name": "High-Risk Countries",
+        "weight": 30,
+        "evidence": "2 transaction(s) totaling $57,630 involving watch-listed jurisdiction(s): KP, MM"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 36,
+    "crypto_transaction_count": 5
+  },
+  {
+    "alert_id": "ALT-CUST0031",
+    "customer_id": "CUST0031",
+    "customer_name": "Diego Ivanov",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R04_LOW_BUYER_DIVERSITY",
+        "name": "Low Buyers Diversity",
+        "weight": 25,
+        "evidence": "7 crypto sales totaling $39,418 concentrated across only 2 distinct buyer wallet(s) (29% diversity ratio)"
+      },
+      {
+        "rule_id": "R10_FREQUENT_CONVERSIONS",
+        "name": "Frequent Conversions Crypto-FIAT or FIAT-Crypto",
+        "weight": 25,
+        "evidence": "9 crypto<->fiat conversions (BTC, ETH, SOL, XRP) totaling $60,231 within a 30-day window"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 65,
+    "crypto_transaction_count": 17
+  },
+  {
+    "alert_id": "ALT-CUST0052",
+    "customer_id": "CUST0052",
+    "customer_name": "Amara Sato",
+    "customer_risk_rating": "medium",
+    "customer_country": "DE",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$46,012 transaction on 2026-06-19 is 3.6 standard deviations above this customer's own average of $8,975"
+      },
+      {
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
+        "weight": 30,
+        "evidence": "$46,012 inbound on 2026-06-19, $52,077 (113%) moved back out within 48 hours"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 28,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0054",
+    "customer_id": "CUST0054",
+    "customer_name": "Liam Patel",
+    "customer_risk_rating": "low",
+    "customer_country": "US",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$23,743 transaction on 2026-05-05 is 4.0 standard deviations above this customer's own average of $2,986"
+      },
+      {
+        "rule_id": "R06_HIGH_RISK_COUNTRIES",
+        "name": "High-Risk Countries",
+        "weight": 30,
+        "evidence": "2 transaction(s) totaling $41,276 involving watch-listed jurisdiction(s): KP, SY"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 28,
+    "crypto_transaction_count": 8
+  },
+  {
+    "alert_id": "ALT-CUST0060",
+    "customer_id": "CUST0060",
+    "customer_name": "Viktor Volkov",
+    "customer_risk_rating": "low",
+    "customer_country": "FR",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$25,920 transaction on 2026-06-23 is 5.5 standard deviations above this customer's own average of $1,411"
+      },
+      {
+        "rule_id": "R05_DISPROPORTIONATE_FLOW_THROUGH",
+        "name": "Disproportionate Flow-Through",
+        "weight": 30,
+        "evidence": "$25,920 inbound on 2026-06-23, $25,615 (99%) moved back out within 48 hours"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 63,
+    "crypto_transaction_count": 8
+  },
+  {
+    "alert_id": "ALT-CUST0073",
+    "customer_id": "CUST0073",
+    "customer_name": "Elena Volkov",
+    "customer_risk_rating": "low",
+    "customer_country": "DE",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$21,676 transaction on 2026-06-03 is 5.0 standard deviations above this customer's own average of $1,900"
+      },
+      {
+        "rule_id": "R06_HIGH_RISK_COUNTRIES",
+        "name": "High-Risk Countries",
+        "weight": 30,
+        "evidence": "2 transaction(s) totaling $37,128 involving watch-listed jurisdiction(s): IR, KP"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 41,
+    "crypto_transaction_count": 7
+  },
+  {
+    "alert_id": "ALT-CUST0089",
+    "customer_id": "CUST0089",
+    "customer_name": "Ingrid Osei",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R10_FREQUENT_CONVERSIONS",
+        "name": "Frequent Conversions Crypto-FIAT or FIAT-Crypto",
+        "weight": 25,
+        "evidence": "9 crypto<->fiat conversions (BTC, ETH, SOL, USDT, XRP) totaling $50,559 within a 30-day window"
+      },
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,934 sent out on 2026-04-22, $8,558 returned within 10 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 50,
+    "transaction_count_in_window": 35,
+    "crypto_transaction_count": 9
+  },
+  {
+    "alert_id": "ALT-CUST0084",
+    "customer_id": "CUST0084",
+    "customer_name": "Priya Moreau",
+    "customer_risk_rating": "medium",
+    "customer_country": "GB",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$29,271 transaction on 2026-05-20 is 3.9 standard deviations above this customer's own average of $4,116"
+      },
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$28,092 sent out on 2026-05-14, $29,271 returned within 6 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 45,
+    "transaction_count_in_window": 33,
+    "crypto_transaction_count": 8
+  },
+  {
+    "alert_id": "ALT-CUST0063",
+    "customer_id": "CUST0063",
+    "customer_name": "Tariq Haddad",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R02_PROFILE_UPDATE_BEFORE_LARGE_TXN",
+        "name": "Customer Details Updated Before a Large Transaction",
+        "weight": 20,
+        "evidence": "'phone number' changed 24h before a $28,639 transaction on 2026-06-20"
+      },
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$28,639 transaction on 2026-06-20 is 6.3 standard deviations above this customer's own average of $3,992"
+      }
+    ],
+    "rule_based_score": 40,
+    "transaction_count_in_window": 49,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0067",
+    "customer_id": "CUST0067",
+    "customer_name": "Sam Moreau",
+    "customer_risk_rating": "high",
+    "customer_country": "NL",
+    "rules_triggered": [
+      {
+        "rule_id": "R02_PROFILE_UPDATE_BEFORE_LARGE_TXN",
+        "name": "Customer Details Updated Before a Large Transaction",
+        "weight": 20,
+        "evidence": "'beneficiary details' changed 20h before a $47,948 transaction on 2026-06-13"
+      },
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$47,948 transaction on 2026-06-13 is 5.1 standard deviations above this customer's own average of $6,588"
+      }
+    ],
+    "rule_based_score": 40,
+    "transaction_count_in_window": 30,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0086",
+    "customer_id": "CUST0086",
+    "customer_name": "Idris Sato",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R02_PROFILE_UPDATE_BEFORE_LARGE_TXN",
+        "name": "Customer Details Updated Before a Large Transaction",
+        "weight": 20,
+        "evidence": "'registered address' changed 26h before a $39,465 transaction on 2026-06-15"
+      },
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$39,465 transaction on 2026-06-15 is 5.3 standard deviations above this customer's own average of $5,736"
+      }
+    ],
+    "rule_based_score": 40,
+    "transaction_count_in_window": 36,
+    "crypto_transaction_count": 10
+  },
+  {
+    "alert_id": "ALT-CUST0008",
+    "customer_id": "CUST0008",
+    "customer_name": "Kenji Chen",
+    "customer_risk_rating": "medium",
+    "customer_country": "DE",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Detection of Structuring",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,347, within 0 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 43,
+    "crypto_transaction_count": 6
+  },
+  {
+    "alert_id": "ALT-CUST0038",
+    "customer_id": "CUST0038",
+    "customer_name": "Sofia Nguyen",
+    "customer_risk_rating": "medium",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Detection of Structuring",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $38,431, within 2 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 23,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0042",
+    "customer_id": "CUST0042",
+    "customer_name": "Isabella Abara",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Detection of Structuring",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,113, within 1 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 42,
+    "crypto_transaction_count": 4
+  },
+  {
+    "alert_id": "ALT-CUST0030",
+    "customer_id": "CUST0030",
+    "customer_name": "Sam Garcia",
+    "customer_risk_rating": "medium",
+    "customer_country": "NL",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,774 sent out on 2026-05-22, $8,269 returned within 9 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 34,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0032",
+    "customer_id": "CUST0032",
+    "customer_name": "Carlos Adeyemi",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$9,648 sent out on 2026-04-08, $9,517 returned within 6 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 59,
+    "crypto_transaction_count": 12
+  },
+  {
+    "alert_id": "ALT-CUST0034",
+    "customer_id": "CUST0034",
+    "customer_name": "Tariq Nguyen",
+    "customer_risk_rating": "high",
+    "customer_country": "US",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,737 sent out on 2026-05-23, $8,078 returned within 8 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 18,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0040",
+    "customer_id": "CUST0040",
+    "customer_name": "Viktor Rossi",
+    "customer_risk_rating": "low",
+    "customer_country": "FR",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,202 sent out on 2026-05-31, $8,265 returned within 4 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 52,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0053",
+    "customer_id": "CUST0053",
+    "customer_name": "Wei Kowalski",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R04_LOW_BUYER_DIVERSITY",
+        "name": "Low Buyers Diversity",
+        "weight": 25,
+        "evidence": "9 crypto sales totaling $24,848 concentrated across only 2 distinct buyer wallet(s) (22% diversity ratio)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 35,
+    "crypto_transaction_count": 9
+  },
+  {
+    "alert_id": "ALT-CUST0061",
+    "customer_id": "CUST0061",
+    "customer_name": "Grace Osei",
+    "customer_risk_rating": "high",
+    "customer_country": "FR",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$8,644 sent out on 2026-06-06, $8,289 returned within 7 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 38,
+    "crypto_transaction_count": 3
+  },
+  {
+    "alert_id": "ALT-CUST0071",
+    "customer_id": "CUST0071",
+    "customer_name": "Ingrid Moreau",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R10_FREQUENT_CONVERSIONS",
+        "name": "Frequent Conversions Crypto-FIAT or FIAT-Crypto",
+        "weight": 25,
+        "evidence": "9 crypto<->fiat conversions (BTC, ETH, SOL, USDT, XRP) totaling $46,932 within a 30-day window"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 40,
+    "crypto_transaction_count": 14
+  },
+  {
+    "alert_id": "ALT-CUST0088",
+    "customer_id": "CUST0088",
+    "customer_name": "Omar Okafor",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R11_ROUND_TRIPPING",
+        "name": "Round-Tripping (bonus)",
+        "weight": 25,
+        "evidence": "$15,876 sent out on 2026-05-06, $16,600 returned within 4 day(s) (circular fund flow)"
+      }
+    ],
+    "rule_based_score": 25,
+    "transaction_count_in_window": 24,
+    "crypto_transaction_count": 7
+  },
+  {
+    "alert_id": "ALT-CUST0004",
+    "customer_id": "CUST0004",
+    "customer_name": "James Moreau",
+    "customer_risk_rating": "medium",
+    "customer_country": "GB",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$2,905 transaction on 2026-06-17 is 3.5 standard deviations above this customer's own average of $861"
       }
     ],
     "rule_based_score": 20,
-    "transaction_count_in_window": 72
+    "transaction_count_in_window": 38,
+    "crypto_transaction_count": 4
+  },
+  {
+    "alert_id": "ALT-CUST0005",
+    "customer_id": "CUST0005",
+    "customer_name": "Yuki Khan",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R08_CASH_TRANSACTIONS",
+        "name": "Cash Transactions",
+        "weight": 20,
+        "evidence": "$26,667 in cash transactions (64% of total activity), vs. expected monthly volume of $5,000"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 28,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0014",
+    "customer_id": "CUST0014",
+    "customer_name": "Ahmed Andersson",
+    "customer_risk_rating": "medium",
+    "customer_country": "NL",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$17,975 transaction on 2026-05-23 is 6.2 standard deviations above this customer's own average of $1,220"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 43,
+    "crypto_transaction_count": 5
+  },
+  {
+    "alert_id": "ALT-CUST0022",
+    "customer_id": "CUST0022",
+    "customer_name": "Zainab Patel",
+    "customer_risk_rating": "high",
+    "customer_country": "US",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$2,400 transaction on 2026-06-27 is 4.0 standard deviations above this customer's own average of $423"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 30,
+    "crypto_transaction_count": 3
+  },
+  {
+    "alert_id": "ALT-CUST0029",
+    "customer_id": "CUST0029",
+    "customer_name": "Hassan Kim",
+    "customer_risk_rating": "low",
+    "customer_country": "NL",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$168,401 transaction on 2026-04-11 is 7.4 standard deviations above this customer's own average of $7,823"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 58,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0035",
+    "customer_id": "CUST0035",
+    "customer_name": "Mei Haddad",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$3,929 transaction on 2026-05-23 is 4.0 standard deviations above this customer's own average of $934"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 43,
+    "crypto_transaction_count": 8
+  },
+  {
+    "alert_id": "ALT-CUST0041",
+    "customer_id": "CUST0041",
+    "customer_name": "Nadia Tanaka",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$20,701 transaction on 2026-06-08 is 8.1 standard deviations above this customer's own average of $1,128"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 79,
+    "crypto_transaction_count": 19
+  },
+  {
+    "alert_id": "ALT-CUST0044",
+    "customer_id": "CUST0044",
+    "customer_name": "Noah Brown",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R08_CASH_TRANSACTIONS",
+        "name": "Cash Transactions",
+        "weight": 20,
+        "evidence": "$29,347 in cash transactions (49% of total activity), vs. expected monthly volume of $3,500"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 32,
+    "crypto_transaction_count": 10
+  },
+  {
+    "alert_id": "ALT-CUST0049",
+    "customer_id": "CUST0049",
+    "customer_name": "Wei Novak",
+    "customer_risk_rating": "low",
+    "customer_country": "AU",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$3,877 transaction on 2026-05-27 is 4.5 standard deviations above this customer's own average of $898"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 56,
+    "crypto_transaction_count": 8
+  },
+  {
+    "alert_id": "ALT-CUST0057",
+    "customer_id": "CUST0057",
+    "customer_name": "Marcus Cohen",
+    "customer_risk_rating": "medium",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_UNUSUAL_SPENDING_PATTERN",
+        "name": "Unusual Spending Pattern",
+        "weight": 20,
+        "evidence": "$3,159 transaction on 2026-04-03 is 3.8 standard deviations above this customer's own average of $684"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 40,
+    "crypto_transaction_count": 9
+  },
+  {
+    "alert_id": "ALT-CUST0069",
+    "customer_id": "CUST0069",
+    "customer_name": "Petra Ivanov",
+    "customer_risk_rating": "low",
+    "customer_country": "AU",
+    "rules_triggered": [
+      {
+        "rule_id": "R08_CASH_TRANSACTIONS",
+        "name": "Cash Transactions",
+        "weight": 20,
+        "evidence": "$36,316 in cash transactions (54% of total activity), vs. expected monthly volume of $15,000"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 24,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0027",
+    "customer_id": "CUST0027",
+    "customer_name": "Wei Kowalski",
+    "customer_risk_rating": "low",
+    "customer_country": "AU",
+    "rules_triggered": [
+      {
+        "rule_id": "R09_DORMANT_ACCOUNTS",
+        "name": "Dormant Accounts",
+        "weight": 15,
+        "evidence": "76-day period of inactivity followed by 7 transactions within 5 days of reactivation"
+      }
+    ],
+    "rule_based_score": 15,
+    "transaction_count_in_window": 10,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0028",
+    "customer_id": "CUST0028",
+    "customer_name": "Youssef Rossi",
+    "customer_risk_rating": "low",
+    "customer_country": "SG",
+    "rules_triggered": [
+      {
+        "rule_id": "R09_DORMANT_ACCOUNTS",
+        "name": "Dormant Accounts",
+        "weight": 15,
+        "evidence": "76-day period of inactivity followed by 7 transactions within 5 days of reactivation"
+      }
+    ],
+    "rule_based_score": 15,
+    "transaction_count_in_window": 10,
+    "crypto_transaction_count": 0
+  },
+  {
+    "alert_id": "ALT-CUST0083",
+    "customer_id": "CUST0083",
+    "customer_name": "Priya Tanaka",
+    "customer_risk_rating": "low",
+    "customer_country": "DE",
+    "rules_triggered": [
+      {
+        "rule_id": "R09_DORMANT_ACCOUNTS",
+        "name": "Dormant Accounts",
+        "weight": 15,
+        "evidence": "78-day period of inactivity followed by 7 transactions within 5 days of reactivation"
+      }
+    ],
+    "rule_based_score": 15,
+    "transaction_count_in_window": 10,
+    "crypto_transaction_count": 0
   }
 ]
