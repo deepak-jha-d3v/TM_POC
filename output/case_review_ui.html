@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>L1 Case Review — Transaction Monitoring POC</title>
+<style>
+  :root{
+    --ink:#141a24; --paper:#f4f3ef; --panel:#ffffff; --line:#dcd9d1;
+    --muted:#6b6a63; --navy:#1c2b45; --navy2:#2b4067;
+    --teal:#0f6e56; --teal-bg:#e1f5ee;
+    --amber:#8a5a06; --amber-bg:#faeeda;
+    --red:#a32d2d; --red-bg:#fcebeb;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--paper);color:var(--ink);}
+  header{background:var(--navy);color:#f4f3ef;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.2px;}
+  header .tag{font-size:11px;color:#aab4c8;font-family:var(--mono);margin-top:3px;}
+  header .badge{font-size:11px;background:var(--navy2);padding:4px 10px;border-radius:3px;color:#dbe3f0;font-family:var(--mono);}
+  .layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 62px);}
+  .queue{border-right:1px solid var(--line);overflow-y:auto;background:var(--panel);}
+  .queue-head{padding:14px 16px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);}
+  .qitem{padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s;}
+  .qitem:hover{background:#f7f6f2;}
+  .qitem.active{background:#eef1f7;border-left:3px solid var(--navy2);padding-left:13px;}
+  .qitem.decided{opacity:.5;}
+  .qitem-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .qitem-id{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .qitem-name{font-size:14px;font-weight:600;margin-top:2px;}
+  .qitem-rules{font-size:11px;color:var(--muted);margin-top:4px;}
+  .score-pill{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;}
+  .lvl-High{background:var(--red-bg);color:var(--red);}
+  .lvl-Medium-High{background:var(--amber-bg);color:var(--amber);}
+  .lvl-Medium{background:var(--amber-bg);color:var(--amber);}
+  .lvl-Low{background:var(--teal-bg);color:var(--teal);}
+  main{overflow-y:auto;padding:28px 36px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin-bottom:18px;}
+  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 14px;}
+  .cust-row{display:flex;justify-content:space-between;align-items:flex-start;}
+  .cust-name{font-size:20px;font-weight:700;}
+  .cust-meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:4px;}
+  .risk-chip{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:3px;border:1px solid var(--line);text-transform:uppercase;}
+  .risk-low{color:var(--teal);border-color:var(--teal-bg);background:var(--teal-bg);}
+  .risk-medium{color:var(--amber);border-color:var(--amber-bg);background:var(--amber-bg);}
+  .risk-high{color:var(--red);border-color:var(--red-bg);background:var(--red-bg);}
+
+  .ai-panel{border:1px solid #c7ded6;background:linear-gradient(180deg,#f4faf8,#ffffff);}
+  .ai-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .ai-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);}
+  .ai-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);font-weight:700;}
+  .score-row{display:flex;align-items:center;gap:22px;margin-bottom:16px;}
+  .score-num{font-family:var(--mono);font-size:40px;font-weight:700;line-height:1;}
+  .score-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  .meter{flex:1;height:8px;background:#e3ede9;border-radius:4px;overflow:hidden;position:relative;}
+  .meter-fill{height:100%;background:var(--teal);border-radius:4px;}
+  .meter-base{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink);opacity:.4;}
+  .adj-note{font-size:12px;color:var(--muted);font-style:italic;}
+  .summary-text{font-size:14px;line-height:1.6;margin:14px 0;}
+  .rules-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .rule-item{border:1px solid var(--line);border-radius:4px;padding:10px 12px;background:#fbfbf9;}
+  .rule-id{font-family:var(--mono);font-size:11px;color:var(--navy2);font-weight:700;}
+  .rule-text{font-size:13px;margin-top:4px;line-height:1.5;}
+  .action-suggest{display:inline-block;margin-top:14px;font-size:12px;padding:6px 12px;border-radius:4px;background:var(--navy);color:#fff;font-family:var(--mono);}
+
+  .decision-row{display:flex;gap:10px;margin-top:8px;}
+  .btn{flex:1;padding:11px 10px;border-radius:5px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:.1s;}
+  .btn:hover{border-color:var(--navy2);}
+  .btn.close{color:var(--teal);}
+  .btn.escalate{color:var(--red);}
+  .btn.info{color:var(--amber);}
+  .btn.active-choice{color:#fff;border-color:transparent;}
+  .btn.close.active-choice{background:var(--teal);}
+  .btn.escalate.active-choice{background:var(--red);}
+  .btn.info.active-choice{background:var(--amber);}
+  textarea{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:5px;padding:9px 10px;font-family:inherit;font-size:13px;resize:vertical;min-height:50px;}
+  .log-empty{font-size:13px;color:var(--muted);}
+  .log-entry{font-size:12px;font-family:var(--mono);padding:8px 0;border-bottom:1px solid var(--line);color:var(--muted);}
+  .log-entry b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Transaction Monitoring — L1 Case Review</h1>
+    <div class="tag">POC · synthetic data · human-in-the-loop</div>
+  </div>
+  <div class="badge" id="queueCount">-- alerts in queue</div>
+</header>
+
+<div class="layout">
+  <div class="queue">
+    <div class="queue-head">Alert queue, sorted by AI confidence score</div>
+    <div id="queueList"></div>
+  </div>
+  <main id="mainPanel"></main>
+</div>
+
+<script>
+const ALERTS = [{"alert_id": "ALT-CUST0050", "customer_id": "CUST0050", "customer_name": "Elena Khan", "customer_risk_rating": "medium", "customer_country": "CA", "rules_triggered": [{"rule_id": "R01_STRUCTURING", "name": "Structuring (CTR avoidance)", "weight": 35, "evidence": "4 deposits between $9,000-$10,000 totaling $37,524, within 2 days"}, {"rule_id": "R08_MULTI_ACCOUNT_FRAGMENTATION", "name": "Multi-account fragmentation", "weight": 30, "evidence": "4 near-threshold deposits totaling $37,524, split across 2 different accounts"}], "rule_based_score": 65, "transaction_count_in_window": 50, "ai_copilot": {"confidence_score": 73, "confidence_label": "Medium-High", "base_score": 65, "adjustment_reason": "2 independent typologies co-occurring raises concern", "rules_explained": [{"rule_id": "R01_STRUCTURING", "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $37,524, within 2 days."}, {"rule_id": "R08_MULTI_ACCOUNT_FRAGMENTATION", "plain_language": "Multi-account fragmentation flagged: 4 near-threshold deposits totaling $37,524, split across 2 different accounts."}], "summary": "This alert was generated for Elena Khan (CUST0050, medium-risk customer) after 2 rule(s) fired: Structuring (CTR avoidance); Multi-account fragmentation. Combined with the customer's risk profile, this pattern is consistent with potentially suspicious activity and warrants L1 review.", "suggested_action": "escalate_to_l2", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0015", "customer_id": "CUST0015", "customer_name": "Noah Rossi", "customer_risk_rating": "low", "customer_country": "CA", "rules_triggered": [{"rule_id": "R01_STRUCTURING", "name": "Structuring (CTR avoidance)", "weight": 35, "evidence": "4 deposits between $9,000-$10,000 totaling $38,148, within 3 days"}], "rule_based_score": 35, "transaction_count_in_window": 31, "ai_copilot": {"confidence_score": 30, "confidence_label": "Medium", "base_score": 35, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R01_STRUCTURING", "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $38,148, within 3 days."}], "summary": "This alert was generated for Noah Rossi (CUST0015, low-risk customer) after 1 rule(s) fired: Structuring (CTR avoidance). Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "request_more_info", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0036", "customer_id": "CUST0036", "customer_name": "Ingrid Khan", "customer_risk_rating": "low", "customer_country": "US", "rules_triggered": [{"rule_id": "R01_STRUCTURING", "name": "Structuring (CTR avoidance)", "weight": 35, "evidence": "4 deposits between $9,000-$10,000 totaling $38,303, within 2 days"}], "rule_based_score": 35, "transaction_count_in_window": 63, "ai_copilot": {"confidence_score": 30, "confidence_label": "Medium", "base_score": 35, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R01_STRUCTURING", "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $38,303, within 2 days."}], "summary": "This alert was generated for Ingrid Khan (CUST0036, low-risk customer) after 1 rule(s) fired: Structuring (CTR avoidance). Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "request_more_info", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0021", "customer_id": "CUST0021", "customer_name": "Noah Santos", "customer_risk_rating": "low", "customer_country": "CA", "rules_triggered": [{"rule_id": "R03_HIGH_RISK_CORRIDOR", "name": "High-risk jurisdiction", "weight": 30, "evidence": "2 transaction(s) totaling $52,032 involving watch-listed jurisdiction(s): KP"}], "rule_based_score": 30, "transaction_count_in_window": 34, "ai_copilot": {"confidence_score": 25, "confidence_label": "Low", "base_score": 30, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R03_HIGH_RISK_CORRIDOR", "plain_language": "High-risk jurisdiction flagged: 2 transaction(s) totaling $52,032 involving watch-listed jurisdiction(s): KP."}], "summary": "This alert was generated for Noah Santos (CUST0021, low-risk customer) after 1 rule(s) fired: High-risk jurisdiction. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0031", "customer_id": "CUST0031", "customer_name": "Sam Ivanov", "customer_risk_rating": "medium", "customer_country": "CA", "rules_triggered": [{"rule_id": "R03_HIGH_RISK_CORRIDOR", "name": "High-risk jurisdiction", "weight": 30, "evidence": "2 transaction(s) totaling $62,390 involving watch-listed jurisdiction(s): SY"}], "rule_based_score": 30, "transaction_count_in_window": 19, "ai_copilot": {"confidence_score": 30, "confidence_label": "Medium", "base_score": 30, "adjustment_reason": "no contextual adjustment applied", "rules_explained": [{"rule_id": "R03_HIGH_RISK_CORRIDOR", "plain_language": "High-risk jurisdiction flagged: 2 transaction(s) totaling $62,390 involving watch-listed jurisdiction(s): SY."}], "summary": "This alert was generated for Sam Ivanov (CUST0031, medium-risk customer) after 1 rule(s) fired: High-risk jurisdiction. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "request_more_info", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0035", "customer_id": "CUST0035", "customer_name": "Anya Petrov", "customer_risk_rating": "low", "customer_country": "GB", "rules_triggered": [{"rule_id": "R04_RAPID_MOVEMENT", "name": "Rapid movement of funds", "weight": 30, "evidence": "$41,654 inbound on 2026-05-27, $39,718 (95%) moved out within 48 hours"}], "rule_based_score": 30, "transaction_count_in_window": 28, "ai_copilot": {"confidence_score": 25, "confidence_label": "Low", "base_score": 30, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R04_RAPID_MOVEMENT", "plain_language": "Rapid movement of funds flagged: $41,654 inbound on 2026-05-27, $39,718 (95%) moved out within 48 hours."}], "summary": "This alert was generated for Anya Petrov (CUST0035, low-risk customer) after 1 rule(s) fired: Rapid movement of funds. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0055", "customer_id": "CUST0055", "customer_name": "Carlos Ivanov", "customer_risk_rating": "low", "customer_country": "US", "rules_triggered": [{"rule_id": "R04_RAPID_MOVEMENT", "name": "Rapid movement of funds", "weight": 30, "evidence": "$30,016 inbound on 2026-06-21, $29,058 (97%) moved out within 48 hours"}], "rule_based_score": 30, "transaction_count_in_window": 51, "ai_copilot": {"confidence_score": 25, "confidence_label": "Low", "base_score": 30, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R04_RAPID_MOVEMENT", "plain_language": "Rapid movement of funds flagged: $30,016 inbound on 2026-06-21, $29,058 (97%) moved out within 48 hours."}], "summary": "This alert was generated for Carlos Ivanov (CUST0055, low-risk customer) after 1 rule(s) fired: Rapid movement of funds. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0006", "customer_id": "CUST0006", "customer_name": "Tariq Khan", "customer_risk_rating": "high", "customer_country": "US", "rules_triggered": [{"rule_id": "R05_ROUND_TRIPPING", "name": "Round-tripping", "weight": 25, "evidence": "$24,700 sent out on 2026-06-13, $24,510 returned within 6 day(s) (circular fund flow)"}], "rule_based_score": 25, "transaction_count_in_window": 36, "ai_copilot": {"confidence_score": 30, "confidence_label": "Medium", "base_score": 25, "adjustment_reason": "customer already carries a high KYC risk rating", "rules_explained": [{"rule_id": "R05_ROUND_TRIPPING", "plain_language": "Round-tripping flagged: $24,700 sent out on 2026-06-13, $24,510 returned within 6 day(s) (circular fund flow)."}], "summary": "This alert was generated for Tariq Khan (CUST0006, high-risk customer) after 1 rule(s) fired: Round-tripping. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "request_more_info", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0051", "customer_id": "CUST0051", "customer_name": "Carlos Brown", "customer_risk_rating": "medium", "customer_country": "GB", "rules_triggered": [{"rule_id": "R05_ROUND_TRIPPING", "name": "Round-tripping", "weight": 25, "evidence": "$12,342 sent out on 2026-05-22, $11,693 returned within 7 day(s) (circular fund flow)"}], "rule_based_score": 25, "transaction_count_in_window": 26, "ai_copilot": {"confidence_score": 25, "confidence_label": "Low", "base_score": 25, "adjustment_reason": "no contextual adjustment applied", "rules_explained": [{"rule_id": "R05_ROUND_TRIPPING", "plain_language": "Round-tripping flagged: $12,342 sent out on 2026-05-22, $11,693 returned within 7 day(s) (circular fund flow)."}], "summary": "This alert was generated for Carlos Brown (CUST0051, medium-risk customer) after 1 rule(s) fired: Round-tripping. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0009", "customer_id": "CUST0009", "customer_name": "Wei Garcia", "customer_risk_rating": "low", "customer_country": "AU", "rules_triggered": [{"rule_id": "R02_VELOCITY", "name": "Velocity spike", "weight": 20, "evidence": "12 transactions within a 48-hour window vs. an expected ~1.1 for this customer"}], "rule_based_score": 20, "transaction_count_in_window": 39, "ai_copilot": {"confidence_score": 15, "confidence_label": "Low", "base_score": 20, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R02_VELOCITY", "plain_language": "Velocity spike flagged: 12 transactions within a 48-hour window vs. an expected ~1.1 for this customer."}], "summary": "This alert was generated for Wei Garcia (CUST0009, low-risk customer) after 1 rule(s) fired: Velocity spike. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0037", "customer_id": "CUST0037", "customer_name": "Priya Petrov", "customer_risk_rating": "high", "customer_country": "DE", "rules_triggered": [{"rule_id": "R07_CASH_INTENSIVE", "name": "Cash-intensive activity", "weight": 20, "evidence": "$30,206 in cash transactions (65% of total activity), vs. expected monthly volume of $3,500"}], "rule_based_score": 20, "transaction_count_in_window": 39, "ai_copilot": {"confidence_score": 25, "confidence_label": "Low", "base_score": 20, "adjustment_reason": "customer already carries a high KYC risk rating", "rules_explained": [{"rule_id": "R07_CASH_INTENSIVE", "plain_language": "Cash-intensive activity flagged: $30,206 in cash transactions (65% of total activity), vs. expected monthly volume of $3,500."}], "summary": "This alert was generated for Priya Petrov (CUST0037, high-risk customer) after 1 rule(s) fired: Cash-intensive activity. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0060", "customer_id": "CUST0060", "customer_name": "Fatima Nguyen", "customer_risk_rating": "medium", "customer_country": "US", "rules_triggered": [{"rule_id": "R07_CASH_INTENSIVE", "name": "Cash-intensive activity", "weight": 20, "evidence": "$39,115 in cash transactions (74% of total activity), vs. expected monthly volume of $3,500"}], "rule_based_score": 20, "transaction_count_in_window": 35, "ai_copilot": {"confidence_score": 20, "confidence_label": "Low", "base_score": 20, "adjustment_reason": "no contextual adjustment applied", "rules_explained": [{"rule_id": "R07_CASH_INTENSIVE", "plain_language": "Cash-intensive activity flagged: $39,115 in cash transactions (74% of total activity), vs. expected monthly volume of $3,500."}], "summary": "This alert was generated for Fatima Nguyen (CUST0060, medium-risk customer) after 1 rule(s) fired: Cash-intensive activity. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0026", "customer_id": "CUST0026", "customer_name": "Ingrid Petrov", "customer_risk_rating": "medium", "customer_country": "GB", "rules_triggered": [{"rule_id": "R06_DORMANT_REACTIVATION", "name": "Dormant account reactivation", "weight": 15, "evidence": "76-day period of inactivity followed by 7 transactions within 5 days of reactivation"}], "rule_based_score": 15, "transaction_count_in_window": 10, "ai_copilot": {"confidence_score": 15, "confidence_label": "Low", "base_score": 15, "adjustment_reason": "no contextual adjustment applied", "rules_explained": [{"rule_id": "R06_DORMANT_REACTIVATION", "plain_language": "Dormant account reactivation flagged: 76-day period of inactivity followed by 7 transactions within 5 days of reactivation."}], "summary": "This alert was generated for Ingrid Petrov (CUST0026, medium-risk customer) after 1 rule(s) fired: Dormant account reactivation. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}, {"alert_id": "ALT-CUST0029", "customer_id": "CUST0029", "customer_name": "Kenji Patel", "customer_risk_rating": "low", "customer_country": "US", "rules_triggered": [{"rule_id": "R06_DORMANT_REACTIVATION", "name": "Dormant account reactivation", "weight": 15, "evidence": "79-day period of inactivity followed by 7 transactions within 5 days of reactivation"}], "rule_based_score": 15, "transaction_count_in_window": 10, "ai_copilot": {"confidence_score": 10, "confidence_label": "Low", "base_score": 15, "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer", "rules_explained": [{"rule_id": "R06_DORMANT_REACTIVATION", "plain_language": "Dormant account reactivation flagged: 79-day period of inactivity followed by 7 transactions within 5 days of reactivation."}], "summary": "This alert was generated for Kenji Patel (CUST0029, low-risk customer) after 1 rule(s) fired: Dormant account reactivation. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.", "suggested_action": "close_false_positive", "_mode": "mock (no ANTHROPIC_API_KEY set)"}}];
+
+const decisions = {}; // alert_id -> {action, note, timestamp}
+let selectedId = ALERTS[0].alert_id;
+
+function slug(label){ return label.replace(/\s+/g,'-'); }
+
+function renderQueue(){
+  const list = document.getElementById('queueList');
+  const sorted = [...ALERTS].sort((a,b)=>b.ai_copilot.confidence_score - a.ai_copilot.confidence_score);
+  list.innerHTML = sorted.map(a=>{
+    const ai = a.ai_copilot;
+    const decided = decisions[a.alert_id];
+    const ruleNames = a.rules_triggered.map(r=>r.rule_id.split('_').slice(1).join(' ')).join(', ');
+    return `<div class="qitem ${a.alert_id===selectedId?'active':''} ${decided?'decided':''}" onclick="selectAlert('${a.alert_id}')">
+      <div class="qitem-top">
+        <span class="qitem-id">${a.alert_id}</span>
+        <span class="score-pill lvl-${slug(ai.confidence_label)}">${ai.confidence_score}</span>
+      </div>
+      <div class="qitem-name">${a.customer_name}</div>
+      <div class="qitem-rules">${ruleNames}${decided? ' · '+decided.action.replace(/_/g,' ') : ''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('queueCount').textContent = `${ALERTS.length - Object.keys(decisions).length} of ${ALERTS.length} pending`;
+}
+
+function selectAlert(id){
+  selectedId = id;
+  renderQueue();
+  renderMain();
+}
+
+function renderMain(){
+  const a = ALERTS.find(x=>x.alert_id===selectedId);
+  const ai = a.ai_copilot;
+  const decided = decisions[a.alert_id];
+
+  const rulesHtml = ai.rules_explained.map(r=>`
+    <div class="rule-item">
+      <div class="rule-id">${r.rule_id}</div>
+      <div class="rule-text">${r.plain_language}</div>
+    </div>`).join('');
+
+  const actionLabelMap = {close_false_positive:'Suggested: close as false positive', escalate_to_l2:'Suggested: escalate to L2', request_more_info:'Suggested: request more information'};
+
+  document.getElementById('mainPanel').innerHTML = `
+    <div class="panel">
+      <div class="cust-row">
+        <div>
+          <div class="cust-name">${a.customer_name}</div>
+          <div class="cust-meta">${a.customer_id} · ${a.customer_country} · ${a.alert_id} · ${a.transaction_count_in_window} txns in window</div>
+        </div>
+        <div class="risk-chip risk-${a.customer_risk_rating}">${a.customer_risk_rating} risk</div>
+      </div>
+    </div>
+
+    <div class="panel ai-panel">
+      <div class="ai-head"><span class="ai-dot"></span><span class="ai-label">AI copilot assessment</span></div>
+      <div class="score-row">
+        <div>
+          <div class="score-num">${ai.confidence_score}</div>
+          <div class="score-sub">${ai.confidence_label} confidence</div>
+        </div>
+        <div style="flex:1">
+          <div class="meter"><div class="meter-fill" style="width:${ai.confidence_score}%"></div>
+            <div class="meter-base" style="left:${ai.base_score}%"></div>
+          </div>
+          <div class="adj-note" style="margin-top:6px">Rule-based score: ${ai.base_score} → AI-adjusted: ${ai.confidence_score} (${ai.adjustment_reason})</div>
+        </div>
+      </div>
+      <div class="summary-text">${ai.summary}</div>
+      <h2 style="margin-top:18px">Rules triggered</h2>
+      <div class="rules-list">${rulesHtml}</div>
+      <div class="action-suggest">${actionLabelMap[ai.suggested_action]}</div>
+    </div>
+
+    <div class="panel">
+      <h2>Analyst disposition (human-in-the-loop)</h2>
+      <div class="decision-row">
+        <button class="btn close ${decided?.action==='close_false_positive'?'active-choice':''}" onclick="decide('close_false_positive')">Close — false positive</button>
+        <button class="btn info ${decided?.action==='request_more_info'?'active-choice':''}" onclick="decide('request_more_info')">Request more info</button>
+        <button class="btn escalate ${decided?.action==='escalate_to_l2'?'active-choice':''}" onclick="decide('escalate_to_l2')">Escalate to L2 / SAR review</button>
+      </div>
+      <textarea id="noteBox" placeholder="Optional note — required if overriding the AI's suggested action">${decided?.note||''}</textarea>
+    </div>
+
+    <div class="panel">
+      <h2>Audit log for this alert</h2>
+      <div id="logArea">${decided ? `<div class="log-entry"><b>${decided.action.replace(/_/g,' ')}</b> by L1 Analyst (demo) at ${decided.timestamp}${decided.note? ' — "'+decided.note+'"':''}${decided.override? ' <span style="color:var(--amber)">[override of AI suggestion]</span>':''}</div>` : '<div class="log-empty">No decision recorded yet for this alert.</div>'}</div>
+    </div>
+  `;
+}
+
+function decide(action){
+  const a = ALERTS.find(x=>x.alert_id===selectedId);
+  const note = document.getElementById('noteBox').value.trim();
+  const override = action !== a.ai_copilot.suggested_action;
+  decisions[a.alert_id] = { action, note, override, timestamp: new Date().toISOString().slice(0,19).replace('T',' ') };
+  renderQueue();
+  renderMain();
+}
+
+renderQueue();
+renderMain();
+</script>
+</body>
+</html>

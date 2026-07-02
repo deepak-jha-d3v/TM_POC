@@ -1,0 +1,268 @@
+[
+  {
+    "alert_id": "ALT-CUST0027",
+    "customer_id": "CUST0027",
+    "customer_name": "Wei Silva",
+    "customer_risk_rating": "medium",
+    "customer_country": "DE",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_HIGH_RISK_CORRIDOR",
+        "name": "High-risk jurisdiction",
+        "weight": 30,
+        "evidence": "1 transaction(s) totaling $32,437 involving watch-listed jurisdiction(s): SY"
+      },
+      {
+        "rule_id": "R04_RAPID_MOVEMENT",
+        "name": "Rapid movement of funds",
+        "weight": 30,
+        "evidence": "$33,840 inbound on 2026-06-04, $32,704 (97%) moved out within 48 hours"
+      }
+    ],
+    "rule_based_score": 60,
+    "transaction_count_in_window": 64,
+    "ai_copilot": {
+      "confidence_score": 68,
+      "confidence_label": "Medium-High",
+      "base_score": 60,
+      "adjustment_reason": "2 independent typologies co-occurring raises concern",
+      "rules_explained": [
+        {
+          "rule_id": "R03_HIGH_RISK_CORRIDOR",
+          "plain_language": "High-risk jurisdiction flagged: 1 transaction(s) totaling $32,437 involving watch-listed jurisdiction(s): SY."
+        },
+        {
+          "rule_id": "R04_RAPID_MOVEMENT",
+          "plain_language": "Rapid movement of funds flagged: $33,840 inbound on 2026-06-04, $32,704 (97%) moved out within 48 hours."
+        }
+      ],
+      "summary": "This alert was generated for Wei Silva (CUST0027, medium-risk customer) after 2 rule(s) fired: High-risk jurisdiction; Rapid movement of funds. Combined with the customer's risk profile, this pattern is consistent with potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "escalate_to_l2",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0007",
+    "customer_id": "CUST0007",
+    "customer_name": "Anya Petrov",
+    "customer_risk_rating": "low",
+    "customer_country": "FR",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Structuring (CTR avoidance)",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,380, within 2 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 23,
+    "ai_copilot": {
+      "confidence_score": 30,
+      "confidence_label": "Medium",
+      "base_score": 35,
+      "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer",
+      "rules_explained": [
+        {
+          "rule_id": "R01_STRUCTURING",
+          "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $37,380, within 2 days."
+        }
+      ],
+      "summary": "This alert was generated for Anya Petrov (CUST0007, low-risk customer) after 1 rule(s) fired: Structuring (CTR avoidance). Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "request_more_info",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0012",
+    "customer_id": "CUST0012",
+    "customer_name": "Carlos Kim",
+    "customer_risk_rating": "low",
+    "customer_country": "AU",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Structuring (CTR avoidance)",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $37,330, within 2 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 23,
+    "ai_copilot": {
+      "confidence_score": 30,
+      "confidence_label": "Medium",
+      "base_score": 35,
+      "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer",
+      "rules_explained": [
+        {
+          "rule_id": "R01_STRUCTURING",
+          "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $37,330, within 2 days."
+        }
+      ],
+      "summary": "This alert was generated for Carlos Kim (CUST0012, low-risk customer) after 1 rule(s) fired: Structuring (CTR avoidance). Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "request_more_info",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0023",
+    "customer_id": "CUST0023",
+    "customer_name": "Maria Cohen",
+    "customer_risk_rating": "low",
+    "customer_country": "AU",
+    "rules_triggered": [
+      {
+        "rule_id": "R01_STRUCTURING",
+        "name": "Structuring (CTR avoidance)",
+        "weight": 35,
+        "evidence": "4 deposits between $9,000-$10,000 totaling $38,092, within 2 days"
+      }
+    ],
+    "rule_based_score": 35,
+    "transaction_count_in_window": 34,
+    "ai_copilot": {
+      "confidence_score": 30,
+      "confidence_label": "Medium",
+      "base_score": 35,
+      "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer",
+      "rules_explained": [
+        {
+          "rule_id": "R01_STRUCTURING",
+          "plain_language": "Structuring (CTR avoidance) flagged: 4 deposits between $9,000-$10,000 totaling $38,092, within 2 days."
+        }
+      ],
+      "summary": "This alert was generated for Maria Cohen (CUST0023, low-risk customer) after 1 rule(s) fired: Structuring (CTR avoidance). Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "request_more_info",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0011",
+    "customer_id": "CUST0011",
+    "customer_name": "Tariq Cohen",
+    "customer_risk_rating": "low",
+    "customer_country": "GB",
+    "rules_triggered": [
+      {
+        "rule_id": "R04_RAPID_MOVEMENT",
+        "name": "Rapid movement of funds",
+        "weight": 30,
+        "evidence": "$36,415 inbound on 2026-04-20, $34,767 (95%) moved out within 48 hours"
+      }
+    ],
+    "rule_based_score": 30,
+    "transaction_count_in_window": 28,
+    "ai_copilot": {
+      "confidence_score": 25,
+      "confidence_label": "Low",
+      "base_score": 30,
+      "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer",
+      "rules_explained": [
+        {
+          "rule_id": "R04_RAPID_MOVEMENT",
+          "plain_language": "Rapid movement of funds flagged: $36,415 inbound on 2026-04-20, $34,767 (95%) moved out within 48 hours."
+        }
+      ],
+      "summary": "This alert was generated for Tariq Cohen (CUST0011, low-risk customer) after 1 rule(s) fired: Rapid movement of funds. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "close_false_positive",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0016",
+    "customer_id": "CUST0016",
+    "customer_name": "Tariq Patel",
+    "customer_risk_rating": "low",
+    "customer_country": "CA",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_HIGH_RISK_CORRIDOR",
+        "name": "High-risk jurisdiction",
+        "weight": 30,
+        "evidence": "2 transaction(s) totaling $60,441 involving watch-listed jurisdiction(s): MM"
+      }
+    ],
+    "rule_based_score": 30,
+    "transaction_count_in_window": 34,
+    "ai_copilot": {
+      "confidence_score": 25,
+      "confidence_label": "Low",
+      "base_score": 30,
+      "adjustment_reason": "single rule hit on an otherwise low-risk, low-history customer",
+      "rules_explained": [
+        {
+          "rule_id": "R03_HIGH_RISK_CORRIDOR",
+          "plain_language": "High-risk jurisdiction flagged: 2 transaction(s) totaling $60,441 involving watch-listed jurisdiction(s): MM."
+        }
+      ],
+      "summary": "This alert was generated for Tariq Patel (CUST0016, low-risk customer) after 1 rule(s) fired: High-risk jurisdiction. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "close_false_positive",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0036",
+    "customer_id": "CUST0036",
+    "customer_name": "Tariq Garcia",
+    "customer_risk_rating": "medium",
+    "customer_country": "US",
+    "rules_triggered": [
+      {
+        "rule_id": "R03_HIGH_RISK_CORRIDOR",
+        "name": "High-risk jurisdiction",
+        "weight": 30,
+        "evidence": "2 transaction(s) totaling $57,606 involving watch-listed jurisdiction(s): MM, SY"
+      }
+    ],
+    "rule_based_score": 30,
+    "transaction_count_in_window": 69,
+    "ai_copilot": {
+      "confidence_score": 30,
+      "confidence_label": "Medium",
+      "base_score": 30,
+      "adjustment_reason": "no contextual adjustment applied",
+      "rules_explained": [
+        {
+          "rule_id": "R03_HIGH_RISK_CORRIDOR",
+          "plain_language": "High-risk jurisdiction flagged: 2 transaction(s) totaling $57,606 involving watch-listed jurisdiction(s): MM, SY."
+        }
+      ],
+      "summary": "This alert was generated for Tariq Garcia (CUST0036, medium-risk customer) after 1 rule(s) fired: High-risk jurisdiction. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "request_more_info",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  },
+  {
+    "alert_id": "ALT-CUST0010",
+    "customer_id": "CUST0010",
+    "customer_name": "Diego Rossi",
+    "customer_risk_rating": "medium",
+    "customer_country": "US",
+    "rules_triggered": [
+      {
+        "rule_id": "R02_VELOCITY",
+        "name": "Velocity spike",
+        "weight": 20,
+        "evidence": "16 transactions within a 48-hour window vs. an expected ~1.7 for this customer"
+      }
+    ],
+    "rule_based_score": 20,
+    "transaction_count_in_window": 72,
+    "ai_copilot": {
+      "confidence_score": 20,
+      "confidence_label": "Low",
+      "base_score": 20,
+      "adjustment_reason": "no contextual adjustment applied",
+      "rules_explained": [
+        {
+          "rule_id": "R02_VELOCITY",
+          "plain_language": "Velocity spike flagged: 16 transactions within a 48-hour window vs. an expected ~1.7 for this customer."
+        }
+      ],
+      "summary": "This alert was generated for Diego Rossi (CUST0010, medium-risk customer) after 1 rule(s) fired: Velocity spike. Combined with the customer's risk profile, this pattern is only weakly suggestive of potentially suspicious activity and warrants L1 review.",
+      "suggested_action": "close_false_positive",
+      "_mode": "mock (no ANTHROPIC_API_KEY set)"
+    }
+  }
+]
