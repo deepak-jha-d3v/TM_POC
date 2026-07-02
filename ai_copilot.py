@@ -34,7 +34,14 @@ from scratch).
 Your job:
 1. Propose a final confidence_score: the base score adjusted by AT MOST +/-10 \
 points based on contextual factors (customer risk rating, prior alert history, \
-whether multiple independent typologies co-occur). State your adjustment_reason.
+whether multiple independent typologies co-occur). Write an adjustment_reason \
+of 3-4 sentences that an L1 analyst or a compliance/model-risk reviewer could \
+rely on: (a) name which specific contextual factors you weighed and how each one \
+pushed the score up, down, or was considered but not weighted, (b) explicitly \
+state the point delta and confirm it falls within the +/-10 band, and (c) explain \
+in plain terms why that net effect makes the alert more or less likely to reflect \
+genuine suspicious activity. Do not just restate the rule evidence -- that is \
+covered separately in rules_explained.
 2. For each triggered rule, write a one-sentence plain-language explanation an \
 L1 analyst can read in a few seconds.
 3. Write a 2-3 sentence summary of why this alert exists and what it suggests.
@@ -47,7 +54,7 @@ this schema:
   "confidence_score": <int 0-100>,
   "confidence_label": <"Low"|"Medium"|"Medium-High"|"High">,
   "base_score": <int, echoed from input>,
-  "adjustment_reason": <string, 1 sentence>,
+  "adjustment_reason": <string, 3-4 sentences, see instructions above>,
   "rules_explained": [{"rule_id": <string>, "plain_language": <string>}],
   "summary": <string, 2-3 sentences>,
   "suggested_action": <string>
@@ -95,6 +102,70 @@ def call_claude(alert: dict) -> dict:
         return mock_response(alert)
 
 
+def build_adjustment_reason(alert: dict, base: int, final: int, n_rules: int, risk: str) -> str:
+    """Builds a multi-sentence, analyst/compliance-reviewer-grade explanation of
+    why the AI copilot moved (or didn't move) the score away from the
+    deterministic rule-based base score. Distinct from rules_explained, which
+    covers rule evidence -- this covers the *contextual* reasoning layered on
+    top of that evidence."""
+    delta = final - base
+    rule_names = [r["name"] for r in alert["rules_triggered"]]
+
+    if n_rules >= 2:
+        if n_rules == 2:
+            combo = f"{rule_names[0]} and {rule_names[1]}"
+        else:
+            combo = ", ".join(rule_names[:-1]) + f", and {rule_names[-1]}"
+        s1 = (f"The rule-based base score of {base} already reflects {n_rules} independently "
+              f"triggered typologies ({combo}) rather than a single isolated hit, which matters "
+              f"because two unrelated detection rules firing on the same customer in the same "
+              f"window is a materially stronger signal than either rule alone -- it lowers the "
+              f"chance this is coincidental account activity.")
+    else:
+        s1 = (f"The rule-based base score of {base} reflects a single triggered typology, "
+              f"{rule_names[0]}, with no other rule corroborating it elsewhere in the "
+              f"transaction window, which on its own is weaker evidence of coordinated "
+              f"suspicious activity.")
+
+    if risk == "high":
+        s2 = ("This customer already carries a high KYC risk rating, so the same rule evidence "
+              "is weighted more heavily than it would be for a lower-risk customer -- prior due "
+              "diligence has already flagged this relationship for closer scrutiny, and new "
+              "alert activity on a high-risk profile is treated as more likely to be genuine.")
+    elif risk == "low" and n_rules == 1:
+        s2 = ("This customer carries a low KYC risk rating and has no other corroborating rule "
+              "hits, so the single trigger is more consistent with routine banking behavior "
+              "producing a false positive than with a deliberate scheme, and the score is "
+              "weighted down accordingly.")
+    elif risk == "medium":
+        s2 = ("This customer's medium KYC risk rating is treated as neutral context -- it "
+              "neither strengthens nor weakens the case on its own, so it was not used to move "
+              "the score in either direction, leaving the rule-hit pattern as the primary driver.")
+    else:
+        s2 = (f"This customer's {risk} KYC risk rating was reviewed as part of the contextual "
+              f"assessment but did not, on its own, materially change the picture already "
+              f"painted by the rule evidence.")
+
+    if delta > 0:
+        s3 = (f"Taken together, these factors supported nudging the score up by {delta} "
+              f"point{'s' if delta != 1 else ''}, from {base} to {final} -- within the +/-10-point "
+              f"band the copilot is permitted to apply -- because they increase the likelihood "
+              f"this alert reflects genuine suspicious activity rather than routine behavior.")
+    elif delta < 0:
+        s3 = (f"Taken together, these factors supported nudging the score down by {abs(delta)} "
+              f"point{'s' if abs(delta) != 1 else ''}, from {base} to {final} -- within the "
+              f"+/-10-point band the copilot is permitted to apply -- because they reduce the "
+              f"likelihood this alert reflects genuine suspicious activity rather than a benign "
+              f"explanation.")
+    else:
+        s3 = (f"Taken together, these factors did not clear the bar for either an upward or "
+              f"downward nudge, so the AI-adjusted score was left equal to the rule-based base "
+              f"score of {base}, and any further calibration is deferred to the L1 analyst's "
+              f"judgment.")
+
+    return f"{s1} {s2} {s3}"
+
+
 def mock_response(alert: dict) -> dict:
     """Deterministic stand-in for the LLM call, so the POC runs with no API key.
     Mirrors the exact JSON schema Claude is prompted to return."""
@@ -103,16 +174,12 @@ def mock_response(alert: dict) -> dict:
     risk = alert["customer_risk_rating"]
 
     adjustment = 0
-    reasons = []
     if n_rules >= 2:
         adjustment += 8
-        reasons.append(f"{n_rules} independent typologies co-occurring raises concern")
     if risk == "high":
         adjustment += 5
-        reasons.append("customer already carries a high KYC risk rating")
     elif risk == "low" and n_rules == 1:
         adjustment -= 5
-        reasons.append("single rule hit on an otherwise low-risk, low-history customer")
     adjustment = max(-10, min(10, adjustment))
     final_score = max(0, min(100, base + adjustment))
 
@@ -144,7 +211,7 @@ def mock_response(alert: dict) -> dict:
         "confidence_score": final_score,
         "confidence_label": label,
         "base_score": base,
-        "adjustment_reason": "; ".join(reasons) if reasons else "no contextual adjustment applied",
+        "adjustment_reason": build_adjustment_reason(alert, base, final_score, n_rules, risk),
         "rules_explained": rules_explained,
         "summary": summary,
         "suggested_action": action,
