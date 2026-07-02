@@ -3,7 +3,8 @@
 A runnable proof of concept: synthetic transaction data (fiat **and** crypto,
 including private-wallet activity) → deterministic rules engine (12 rules) →
 AI copilot (confidence score + rule breakdown + summary) → L1 analyst review
-with human-in-the-loop disposition and a CSV-exportable audit trail.
+with human-in-the-loop disposition and a per-submission audit trail written
+directly to `L1_Audit_tracker.csv`.
 
 ## Files
 
@@ -14,7 +15,7 @@ with human-in-the-loop disposition and a CSV-exportable audit trail.
 | `ai_copilot.py` | The AI layer. Takes each alert and asks Claude (or falls back to a deterministic mock if no API key) to adjust the base score by at most ±10 points with a stated reason, explain each triggered rule in plain language, write a short summary, and recommend an action. Writes `output/alerts_with_ai.json`. |
 | `enrich_ui_data.py` | Attaches a handful of the most evidentially interesting transactions (large amounts, crypto, private-wallet moves, high-risk corridors, cash) to each alert for display in the UI. Writes `output/alerts_for_ui.json`. |
 | `build_ui.py` | Injects the enriched alert data + rule catalog into `ui_template.html` to produce the final standalone `output/case_review_ui.html`. |
-| `output/case_review_ui.html` | Standalone L1 analyst case-review screen. Open it directly in a browser — no server needed. Alert queue with search/risk/rule/crypto filters, an AI assessment panel, **accordion cards** for each triggered rule (collapsed by default, expand for the plain-language explanation + evidence), a supporting-transactions table, analyst disposition capture, and a **CSV export of the full audit log**. |
+| `output/case_review_ui.html` | Standalone L1 analyst case-review screen, branded **SARA.ai**. Open it directly in a browser — no server needed. Alert queue with search/risk/rule/crypto filters, an AI assessment panel with a dedicated score-adjustment card, **accordion cards** for each triggered rule (collapsed by default, expand for the plain-language explanation + evidence), a supporting-transactions table, and analyst disposition capture that commits straight to `L1_Audit_tracker.csv` on submit. |
 
 ## Rule reference (R01–R12)
 
@@ -86,10 +87,19 @@ model when you're ready.
 
 ## UI features
 
+- **SARA.ai branding** — the header shows a single "SARA.ai" logo mark; no
+  duplicate product name elsewhere in the header. The descriptive subtitle
+  ("POC · synthetic data incl. crypto & private wallets · human-in-the-loop")
+  stays underneath it.
 - **Accordion rule cards** — each triggered rule collapses to its name and
   weight by default; expanding it reveals the AI's plain-language
   explanation plus the raw rule evidence, keeping the page uncluttered when
   several rules fire on one alert.
+- **Score adjustment panel** — the AI copilot's confidence score is no
+  longer folded into the general summary text. It has its own card showing
+  the base→adjusted score delta (with a color-coded up/down/no-change tag)
+  and a short, 3-bullet justification, so an analyst can see *why* the score
+  moved without reading a full paragraph.
 - **Filters** — free-text search (name/ID), risk-rating toggle, a
   "crypto-involved only" toggle, and per-rule filter chips so you can
   isolate, say, every alert where R07 (private-wallet withdrawal) fired.
@@ -97,11 +107,19 @@ model when you're ready.
   transactions for the selected customer (large amounts, crypto, private
   wallet moves, cash, high-risk corridors), so the analyst isn't just
   reading prose evidence.
-- **CSV audit export** — the "Export audit log (CSV)" button in the header
-  exports every alert's AI assessment plus whatever analyst decisions have
-  been recorded in the current session (action, note, override flag,
-  timestamp) as a downloadable `.csv`, in addition to the on-screen,
-  per-alert audit log.
+- **Stage → Submit → commit disposition flow** — clicking Close / Request
+  More Info / Escalate only stages the analyst's choice; nothing is saved
+  until **Submit decision** is clicked. There is no manual export button
+  anywhere in the UI.
+- **Direct-to-file audit trail** — on submit, the browser's File System
+  Access API is used to write (or append to, on subsequent submits) a file
+  named **`L1_Audit_tracker.csv`** on the analyst's machine — one row per
+  submitted decision, including the alert, AI base/adjusted score, the
+  analyst's action, note, override flag, and timestamp. The decision is
+  only marked as committed in the UI once that write succeeds. Browsers
+  without the File System Access API (Firefox, Safari) fall back to
+  automatically re-saving the same `L1_Audit_tracker.csv` filename on each
+  submit.
 
 ## How this maps to the design
 
@@ -117,12 +135,15 @@ model when you're ready.
   nothing. It takes the deterministic base score and rule evidence as
   input, is only allowed to nudge the score within a bounded range with a
   stated reason, and turns structured rule output into something a human
-  can read in seconds.
+  can read in seconds. The score's justification is now surfaced in its own
+  UI panel, separate from the general case summary.
 - **Human-in-the-loop**: the analyst always makes the final call in the UI.
-  Every decision — including whether it agreed with or overrode the AI's
-  suggestion — is captured with a timestamp and is now exportable as a CSV
-  audit trail, the seed of a real audit log and a feedback dataset for
-  tuning rule thresholds and prompts over time.
+  A decision is staged (button click) and only becomes final once
+  explicitly submitted — at which point it's written directly to
+  `L1_Audit_tracker.csv` as the audit record, rather than requiring the
+  analyst to remember to run a separate export step. This is the seed of a
+  real audit log and a feedback dataset for tuning rule thresholds and
+  prompts over time.
 
 ## Extending this into something closer to production
 
@@ -131,7 +152,8 @@ model when you're ready.
 - Persist alerts, profile-update events, and analyst decisions to a real
   database instead of JSON/CSV files, and expose the case-review UI through
   a backend (FastAPI is a natural fit given `ai_copilot.py` is already
-  plain Python).
+  plain Python). A backend would also remove the current reliance on each
+  analyst's local browser (File System Access API) for the audit file.
 - Wire R04/R07/R10 to real exchange/custody APIs for wallet attribution
   (exchange-hosted vs. unhosted) rather than the synthetic `wallet_type`
   flag used here.
@@ -142,3 +164,29 @@ model when you're ready.
 - Add role-based access control and a full audit log store (who viewed
   what, when, and what the AI showed them at the time) — expected by bank
   compliance/audit functions even for a pilot.
+
+## Recent UI changes (this revision)
+
+Changes made to `output/case_review_ui.html` since the original build:
+
+1. **Score adjustment panel** — the AI's base→adjusted score explanation was
+   split out of the general summary text into its own card with a
+   color-coded delta tag and a crisp, 3-bullet justification.
+2. **Removed the filler phrase "Taken together"** from the start of every
+   AI-generated justification sentence (in `adjustment_reason`) — the
+   sentence now reads "These factors supported…" / "These factors did not
+   clear…" directly.
+3. **Stage → Submit flow** — the disposition buttons (Close / Request More
+   Info / Escalate) now only stage a choice. A new **Submit decision**
+   button commits it; it's disabled until a choice is staged.
+4. **Removed all export functionality** — both the "Export decisions (CSV)"
+   and "Export audit log (JSON)" header buttons, and their underlying
+   functions, were removed. There is no manual export step anywhere in the
+   UI.
+5. **Direct-to-CSV audit trail** — Submit now writes straight to
+   `L1_Audit_tracker.csv` on the analyst's machine (via the File System
+   Access API, with a same-filename download fallback for browsers that
+   don't support it), instead of using in-app storage plus a manual export.
+6. **Rebranding** — the header now shows a single "SARA.ai" logo mark in
+   the blue badge; the duplicate product-name heading next to it was
+   removed, and the descriptive subtitle line was kept unchanged.
